@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>곽재현 · 게임 QA 포트폴리오</title>
+<meta name="description" content="게임 QA를 준비하는 곽재현의 포트폴리오. 프로젝트, 트러블슈팅 기록, 기술 스택.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one reading column; hero → about → skills → projects → bug log → learning → contact. Bug log uses QA ticket styling. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --fg: #16201d;
+  --muted: #5a6a65;
+  --line: #d9e1de;
+  --accent: #0f766e;
+  --accent-soft: #e0f2ef;
+  --pass: #15803d;
+  --pass-soft: #e3f4e8;
+  --fail: #c2410c;
+  --fail-soft: #fdece2;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+    --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+    --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+  --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+  --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+}
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+.wrap {
+  max-width: 880px; margin: 0 auto;
+  padding-left: max(18px, env(safe-area-inset-left, 0px));
+  padding-right: max(18px, env(safe-area-inset-right, 0px));
+}
+
+/* nav */
+nav { border-bottom: 1px solid var(--line); background: var(--surface); }
+nav .wrap { display: flex; gap: 6px 18px; flex-wrap: wrap; align-items: center; padding-block: 12px; }
+nav .me { font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: var(--fg); text-decoration: none; margin-right: auto; }
+nav a.link { font-size: 14px; color: var(--muted); text-decoration: none; }
+nav a.link:hover { color: var(--accent); }
+
+/* hero */
+header.hero .wrap { padding-block: 64px 48px; display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; letter-spacing: .06em; color: var(--accent); text-transform: uppercase; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(40px, 8vw, 68px); line-height: 1.1; margin: 0; letter-spacing: -.01em; }
+.lead { font-size: clamp(18px, 2.6vw, 21px); max-width: 34em; margin: 0; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { font-size: 13.5px; padding: 3px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+
+/* test run strip in hero */
+.run { margin-top: 8px; font-family: var(--font-mono); font-size: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; max-width: 520px; }
+.run .ok { color: var(--pass); }
+.run .dim { color: var(--muted); }
+
+/* sections */
+section { border-top: 1px solid var(--line); }
+section .wrap { padding-block: 52px; display: flex; flex-direction: column; gap: 22px; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.25; margin: 0; display: flex; align-items: baseline; gap: 12px; }
+h2 .num { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-weight: 500; }
+.sub { color: var(--muted); margin: -8px 0 0; }
+p { margin: 0; max-width: 40em; }
+
+/* about */
+.story { display: grid; gap: 14px; }
+.story strong { color: var(--fg); }
+
+/* skills */
+.skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.skill { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.skill h3 { margin: 0; font-size: 14px; font-family: var(--font-mono); color: var(--muted); font-weight: 500; letter-spacing: .03em; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 14px; padding: 3px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--fg); }
+.chip.used { background: var(--pass-soft); }
+.legend { font-size: 13px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.legend .l-used::before { background: var(--pass-soft); border: 1px solid var(--pass); }
+.legend .l-class::before { background: var(--accent-soft); border: 1px solid var(--accent); }
+
+/* projects */
+.projects { display: grid; gap: 16px; }
+.project { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; display: grid; gap: 12px; min-width: 0; }
+.project .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.project h3 { margin: 0; font-size: 19px; }
+.project .stack { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.project ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.project .links { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14.5px; }
+.project .note { font-size: 13.5px; color: var(--muted); }
+
+/* bug log */
+.bugs { display: grid; gap: 12px; }
+.bug { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--pass); border-radius: 10px; padding: 16px 18px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; min-width: 0; }
+.bug .id { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.bug .state { font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--pass-soft); color: var(--pass); align-self: start; white-space: nowrap; }
+.bug h3 { grid-column: 1 / -1; margin: 0; font-size: 16.5px; }
+.bug dl { grid-column: 1 / -1; margin: 0; display: grid; grid-template-columns: 4.5em 1fr; gap: 4px 12px; font-size: 15px; }
+.bug dt { color: var(--muted); font-size: 13.5px; padding-top: 2px; }
+.bug dd { margin: 0; min-width: 0; }
+.bug code, .project code { font-family: var(--font-mono); font-size: .88em; background: var(--bg); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.bug.finding { border-left-color: var(--fail); }
+.bug.finding .state { background: var(--fail-soft); color: var(--fail); }
+
+/* learning */
+.timeline { display: grid; gap: 12px; }
+.tl { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px 16px; }
+.tl time { font-family: var(--font-mono); font-size: 13.5px; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.tl b { display: block; }
+.tl span { color: var(--muted); font-size: 15px; }
+
+.logtitle { margin: 12px 0 0; font-size: 15px; font-family: var(--font-mono); color: var(--muted); font-weight: 500; letter-spacing: .03em; }
+.weekly { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; border-left: 2px solid var(--line); padding-left: 16px; }
+
+/* contact */
+.contact { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; background: var(--accent); color: var(--surface); text-decoration: none; font-weight: 700; }
+.btn:hover { filter: brightness(1.08); }
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 24px 40px; font-size: 13.5px; color: var(--muted); display: grid; gap: 6px; }
+
+@media (max-width: 560px) {
+  .bug dl { grid-template-columns: 1fr; gap: 0; }
+  .bug dt { padding-top: 8px; }
+  .tl { grid-template-columns: 1fr; gap: 0; }
+  section .wrap { padding-block: 40px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="me" href="#top">kwakjae93</a>
+    <a class="link" href="#about">소개</a>
+    <a class="link" href="#skills">기술</a>
+    <a class="link" href="#projects">프로젝트</a>
+    <a class="link" href="#bugs">트러블슈팅</a>
+    <a class="link" href="#learning">학습</a>
+    <a class="link" href="#contact">연락</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Game QA · Portfolio</div>
+    <h1>곽재현</h1>
+    <p class="lead">카트마다 다른 드리프트를 알아채던 감각으로, 게임이 의도한 대로 움직이는지 확인하는 QA를 준비하고 있습니다.</p>
+    <div class="meta">
+      <span class="tag">유한대학교 컴퓨터소프트웨어학과 졸업</span>
+      <span class="tag">게임 QA 지망 · 신입</span>
+      <span class="tag">AX 부트캠프 참여 중</span>
+    </div>
+    <div class="run" aria-label="이 포트폴리오에 담긴 내용 요약">
+      <span class="dim">$ run portfolio --summary</span>
+      <span><span class="ok">PASS</span> 프로젝트 3개 · 공개 데모 1개</span>
+      <span><span class="ok">PASS</span> 해결한 문제 5건 기록</span>
+      <span><span class="ok">PASS</span> 사용 언어 C/C++ · Java · Python</span>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="wrap">
+    <h2><span class="num">01</span>소개</h2>
+    <div class="story">
+      <p>다섯 살에 처음 컴퓨터를 만났고, 그때부터 게임에 빠졌습니다. 처음 해 본 카트라이더에서 <strong>같은 트랙을 달려도 카트마다 드리프트 조작감과 속도가 다르다</strong>는 걸 느꼈고, 그 차이가 왜 생기는지 궁금했습니다.</p>
+      <p>그 궁금증으로 컴퓨터소프트웨어학과에 진학했습니다. 지금은 게임이 의도대로 동작하는지 확인하고, 문제를 찾으면 <strong>다른 사람이 그대로 따라 할 수 있게 기록하는 일</strong>을 목표로 게임 QA를 준비하고 있습니다.</p>
+      <p>요즘은 AI 도구를 활용해 반복 작업을 자동화하는 연습을 하고 있습니다. 아래 프로젝트와 트러블슈팅 기록은 모두 그 과정에서 직접 부딪히며 만든 결과입니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="wrap">
+    <h2><span class="num">02</span>기술</h2>
+    <div class="legend"><span class="l-used">아래 프로젝트에서 직접 사용</span><span class="l-class">학교에서 배운 언어</span></div>
+    <div class="skills">
+      <div class="skill">
+        <h3>LANGUAGES</h3>
+        <div class="chips">
+          <span class="chip">C / C++</span>
+          <span class="chip">Java</span>
+          <span class="chip">Python</span>
+        </div>
+      </div>
+      <div class="skill">
+        <h3>WEB &amp; SCRIPT</h3>
+        <div class="chips">
+          <span class="chip used">HTML</span>
+          <span class="chip used">CSS</span>
+          <span class="chip used">JavaScript</span>
+          <span class="chip used">PowerShell</span>
+          <span class="chip used">Markdown</span>
+        </div>
+      </div>
+      <div class="skill">
+        <h3>TOOLS</h3>
+        <div class="chips">
+          <span class="chip used">Git</span>
+          <span class="chip used">GitHub Pages</span>
+          <span class="chip used">VS Code</span>
+          <span class="chip used">Obsidian</span>
+          <span class="chip used">Claude Code (AI)</span>
+          <span class="chip used">Node.js</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <h2><span class="num">03</span>프로젝트</h2>
+    <p class="sub">AI 도구(Claude Code)와 함께 만들었고, 무엇을 만들지 정하고 결과를 확인·배포하는 일은 직접 했습니다.</p>
+    <div class="projects">
+
+      <article class="project">
+        <div class="head">
+          <h3>게임 QA 공고 보드</h3>
+          <span class="stack">HTML · CSS · JavaScript · GitHub Pages</span>
+        </div>
+        <p>게임잡과 알바몬에서 최근 1주일 동안 올라온 게임 QA 공고를 한 페이지에 모아 보는 웹페이지입니다.</p>
+        <ul>
+          <li>출처(게임잡/알바몬), 신입·초보 가능, 정규직, 마감 임박 <b>필터</b></li>
+          <li>마감일까지 남은 날을 계산해 <b>D-day</b>로 표시하고, 7일 이내는 강조</li>
+          <li>관심 공고 ☆ 표시를 브라우저에 저장, 다크 모드와 휴대폰 화면 지원</li>
+        </ul>
+        <div class="links">
+          <a href="https://kwakjae93.github.io/qa-jobs/qa-board/QA_2026-10-16.html" target="_blank" rel="noopener">공개 데모 보기 →</a>
+          <a href="https://github.com/kwakjae93/qa-jobs" target="_blank" rel="noopener">GitHub 저장소</a>
+        </div>
+      </article>
+
+      <article class="project">
+        <div class="head">
+          <h3>"취업준비" 공고 수집 자동화</h3>
+          <span class="stack">PowerShell · Claude Code 스킬</span>
+        </div>
+        <p>"취업준비"라고 입력하면 두 채용 사이트의 QA 공고를 모아, 정리 노트와 위의 공고 보드를 자동으로 만드는 도구입니다.</p>
+        <ul>
+          <li>게임잡은 목록을 불러오는 요청에 직종 코드(QA·테스터)와 등록일순 정렬을 넣어 수집</li>
+          <li>알바몬은 페이지에 들어 있는 공고 데이터를 읽고, 여러 검색어 결과를 합친 뒤 중복 제거</li>
+          <li>"6시간 전", "3일 전" 같은 등록 표시를 날짜로 바꿔 최근 7일 공고만 선택</li>
+          <li>한 사이트가 실패해도 나머지 결과는 만들고 실패 사실을 알림. 공개 업로드는 실행 전에 확인</li>
+        </ul>
+        <p class="note">실제 파일을 덮어쓰지 않도록 임시 폴더에서 먼저 시험한 뒤 적용했습니다.</p>
+      </article>
+
+      <article class="project">
+        <div class="head">
+          <h3>HWP 본문 추출 스크립트</h3>
+          <span class="stack">PowerShell · 파일 포맷 분석</span>
+        </div>
+        <p>한글 프로그램이나 Python이 없는 컴퓨터에서 <code>.hwp</code> 파일의 본문 글자를 꺼내는 스크립트입니다.</p>
+        <ul>
+          <li>HWP 5.0 파일이 여러 데이터를 묶은 구조(OLE)라는 점을 확인하고, 그 안의 본문 영역을 찾아 읽음</li>
+          <li>압축된 본문을 풀고, 글자가 담긴 기록만 골라 텍스트로 변환</li>
+          <li>나중에 전용 변환 도구(kordoc)를 설치한 뒤 같은 파일로 결과가 같은지 비교해 확인</li>
+        </ul>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="bugs">
+  <div class="wrap">
+    <h2><span class="num">04</span>트러블슈팅 기록</h2>
+    <p class="sub">프로젝트를 만들며 실제로 만난 문제를 버그 리포트 형식으로 정리했습니다.</p>
+    <div class="bugs">
+
+      <article class="bug">
+        <span class="id">ISSUE-001 · Git</span>
+        <span class="state">RESOLVED</span>
+        <h3>Git을 설치했는데 터미널이 <code>git</code> 명령을 인식하지 못함</h3>
+        <dl>
+          <dt>현상</dt><dd><code>'git' 용어가 cmdlet ... 으로 인식되지 않습니다</code> 오류</dd>
+          <dt>원인</dt><dd>Git 설치 <b>전에</b> 열어 둔 터미널은 새 프로그램 위치(PATH)를 모름</dd>
+          <dt>해결</dt><dd>PATH를 다시 불러오는 명령을 실행하거나 터미널을 다시 열어 해결</dd>
+        </dl>
+      </article>
+
+      <article class="bug">
+        <span class="id">ISSUE-002 · GitHub</span>
+        <span class="state">RESOLVED</span>
+        <h3>내 저장소에 업로드했는데 권한 거부(403)</h3>
+        <dl>
+          <dt>현상</dt><dd><code>Permission to kwakjae93/qa-jobs.git denied to (다른 계정)</code></dd>
+          <dt>원인</dt><dd>공용 컴퓨터에 다른 사람의 GitHub 계정이 기본 로그인으로 저장되어 있었음</dd>
+          <dt>해결</dt><dd>그 계정 정보는 건드리지 않고, 이 저장소 주소에만 내 계정 이름을 넣어 내 계정으로 로그인. 작업 후 내 로그인 정보는 삭제</dd>
+        </dl>
+      </article>
+
+      <article class="bug">
+        <span class="id">ISSUE-003 · GitHub Pages</span>
+        <span class="state">RESOLVED</span>
+        <h3>업로드는 성공했는데 공개 링크가 404</h3>
+        <dl>
+          <dt>현상</dt><dd>파일은 저장소에 있는데 페이지 주소에서 404</dd>
+          <dt>원인</dt><dd>GitHub Pages 설정이 꺼져 있었음. GitHub에 사이트 정보를 조회해 Pages가 없다는 걸 확인</dd>
+          <dt>해결</dt><dd>Settings → Pages에서 main 브랜치로 켜고, 배포 작업이 끝날 때까지 확인한 뒤 페이지 응답(200)과 내용까지 검증</dd>
+        </dl>
+      </article>
+
+      <article class="bug">
+        <span class="id">ISSUE-004 · 업로드 스크립트</span>
+        <span class="state">RESOLVED</span>
+        <h3>업로드 과정에서 "최신 상태 받기" 단계가 실패</h3>
+        <dl>
+          <dt>현상</dt><dd><code>cannot pull with rebase: You have unstaged changes</code></dd>
+          <dt>원인</dt><dd>새 파일을 저장소에 먼저 복사한 뒤 최신 상태를 받으려 해서, 바뀐 파일과 충돌</dd>
+          <dt>해결</dt><dd>최신 상태 받기 → 파일 복사 → 기록 → 업로드 순서로 바꿔 재발 방지</dd>
+        </dl>
+      </article>
+
+      <article class="bug finding">
+        <span class="id">FINDING-005 · 데이터 검증</span>
+        <span class="state">KNOWN LIMIT</span>
+        <h3>알바몬 공고는 "신입 가능" 필터에 하나도 잡히지 않음</h3>
+        <dl>
+          <dt>현상</dt><dd>신입만 골라 달라는 요청에 알바몬 공고가 전부 "조건 확인"으로 표시됨</dd>
+          <dt>조사</dt><dd>공고 9건의 상세 페이지를 하나씩 확인. 경력 정보가 모든 공고에 똑같이 "경력무관"으로 들어 있어 공고별 구분이 불가능함</dd>
+          <dt>결론</dt><dd>자동 분류를 믿지 않고 본문에 "신입도 환영"이 적힌 공고만 따로 표시. 한계를 노트와 페이지에 명시</dd>
+        </dl>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="learning">
+  <div class="wrap">
+    <h2><span class="num">05</span>학습</h2>
+    <div class="timeline">
+      <div class="tl">
+        <time>2026.10 ~</time>
+        <div><b>유한대학교 AX 부트캠프</b><span>AI 도구로 자료 정리, 웹페이지 제작, GitHub 배포, 반복 작업 자동화를 실습</span></div>
+      </div>
+      <div class="tl">
+        <time>꾸준히</time>
+        <div><b>학습 노트 정리</b><span>PARA 방식으로 노트를 관리하며 Git, GitHub Actions(CI), 크론잡, IDE 같은 개념을 정리</span></div>
+      </div>
+      <div class="tl">
+        <time>졸업</time>
+        <div><b>유한대학교 컴퓨터소프트웨어학과</b><span>C/C++, Java, Python</span></div>
+      </div>
+    </div>
+    <h3 class="logtitle">주간 학습 기록</h3>
+    <ul class="weekly">
+      <!-- weekly-log:start -->
+      <li class="tl">
+        <time>2026-10-16</time>
+        <div><b>PARA 정리법 · 웹페이지 제작 · GitHub Pages 배포</b><span>마크다운으로 노트를 정리하고, 채용 공고를 모은 웹페이지를 HTML·CSS·JavaScript로 만들어 GitHub Pages에 배포했습니다.</span></div>
+      </li>
+      <!-- weekly-log:end -->
+    </ul>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <h2><span class="num">06</span>연락</h2>
+    <p>프로젝트 코드와 기록은 GitHub에서 볼 수 있습니다.</p>
+    <div class="contact">
+      <a class="btn" href="https://github.com/kwakjae93" target="_blank" rel="noopener">github.com/kwakjae93</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 곽재현 · 이 페이지와 프로젝트 일부는 AI 도구(Claude Code)를 활용해 만들었습니다.</span>
+    <span>마지막 업데이트 2026-10-23</span>
+  </div>
+</footer>
+
+</body>
+</html>

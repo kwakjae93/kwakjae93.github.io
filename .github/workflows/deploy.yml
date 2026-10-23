@@ -1,0 +1,61 @@
+name: 포트폴리오 배포
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 기본 검사
+        run: |
+          test -f index.html || { echo "index.html이 없어요"; exit 1; }
+          grep -q "</html>" index.html || { echo "index.html이 끝까지 저장되지 않았어요"; exit 1; }
+          grep -q "<title>" index.html || { echo "<title>이 없어요"; exit 1; }
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 텔레그램 알림
+        if: always()
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          STATUS: ${{ job.status }}
+          MSG: ${{ github.event.head_commit.message }}
+          PAGE: ${{ steps.deployment.outputs.page_url }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$CHAT_ID" ]; then echo "텔레그램 Secrets가 없어서 알림을 건너뛰어요"; exit 0; fi
+          if [ "$STATUS" = "success" ]; then
+            TEXT="✅ 포트폴리오 배포 성공
+          ${MSG}
+          사이트: ${PAGE:-https://kwakjae93.github.io/}"
+          else
+            TEXT="❌ 포트폴리오 배포 실패
+          ${MSG}
+          원인 보기: ${RUN}"
+          fi
+          curl -s -o /dev/null -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=${TEXT}"
