@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>주간 학습 요약 자동화 · 곽재현</title>
+<meta name="description" content="매주 금요일 19:45, 그날 학습한 노트를 요약하고 포트폴리오를 갱신해 배포하는 자동화 프로젝트 정리.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: single reading column, same tokens as the portfolio index. Pipeline steps as a numbered flow because order matters. */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --fg: #16201d; --muted: #5a6a65; --line: #d9e1de;
+  --accent: #0f766e; --accent-soft: #e0f2ef; --pass: #15803d; --pass-soft: #e3f4e8;
+  --fail: #c2410c; --fail-soft: #fdece2; --code-bg: #eef2f1;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+    --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+    --fail: #ffa070; --fail-soft: #3a2218; --code-bg: #111a17; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+  --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+  --fail: #ffa070; --fail-soft: #3a2218; --code-bg: #111a17; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+
+nav { border-bottom: 1px solid var(--line); background: var(--surface); }
+nav .wrap { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; padding-block: 12px; font-size: 14px; }
+nav a { text-decoration: none; color: var(--muted); }
+nav a.back { color: var(--fg); font-family: var(--font-mono); font-weight: 700; margin-right: auto; }
+
+header .wrap { padding-block: 52px 36px; display: grid; gap: 16px; }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; letter-spacing: .06em; color: var(--accent); text-transform: uppercase; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(34px, 6.5vw, 54px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.lead { font-size: 19px; margin: 0; max-width: 36em; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.fact span { font-size: 12.5px; color: var(--muted); font-family: var(--font-mono); }
+.fact b { font-size: 15.5px; }
+.cron { font-family: var(--font-mono); font-size: 14px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.cron code { font-size: 18px; font-weight: 700; color: var(--accent); }
+.cron span { color: var(--muted); }
+
+section { border-top: 1px solid var(--line); }
+section .wrap { padding-block: 44px; display: grid; gap: 18px; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 27px; margin: 0; display: flex; gap: 12px; align-items: baseline; }
+h2 .num { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+h3 { margin: 0; font-size: 17px; }
+p { margin: 0; max-width: 40em; }
+.muted { color: var(--muted); }
+
+/* pipeline */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.flow li { counter-increment: step; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 14px 58px; position: relative; display: grid; gap: 4px; }
+.flow li::before { content: counter(step); position: absolute; left: 16px; top: 14px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-family: var(--font-mono); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+.flow .who { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.flow .who.me { color: var(--fail); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 500; font-family: var(--font-mono); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td code, p code, li code { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+/* decisions */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.card .q { font-size: 13.5px; color: var(--muted); }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.6; }
+.cap { font-size: 13.5px; color: var(--muted); margin-top: -8px; }
+
+/* bugs */
+.bugs { display: grid; gap: 12px; }
+.bug { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--pass); border-radius: 10px; padding: 16px 18px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; min-width: 0; }
+.bug .id { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.bug .state { font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--pass-soft); color: var(--pass); align-self: start; white-space: nowrap; }
+.bug.prevent { border-left-color: var(--accent); }
+.bug.prevent .state { background: var(--accent-soft); color: var(--accent); }
+.bug h3 { grid-column: 1 / -1; font-size: 16px; }
+.bug dl { grid-column: 1 / -1; margin: 0; display: grid; grid-template-columns: 4.5em 1fr; gap: 4px 12px; font-size: 15px; }
+.bug dt { color: var(--muted); font-size: 13.5px; padding-top: 2px; }
+.bug dd { margin: 0; min-width: 0; }
+.bug code { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+/* tests */
+.ok { color: var(--pass); font-weight: 700; font-family: var(--font-mono); font-size: 13px; }
+.wait { color: var(--muted); font-weight: 700; font-family: var(--font-mono); font-size: 13px; }
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 24px 40px; font-size: 13.5px; color: var(--muted); display: grid; gap: 6px; }
+
+@media (max-width: 560px) {
+  .bug dl { grid-template-columns: 1fr; gap: 0; }
+  .bug dt { padding-top: 8px; }
+  .flow li { padding-left: 50px; }
+  .flow li::before { left: 12px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="back" href="../index.html">← 곽재현 포트폴리오</a>
+    <a href="#flow">동작 흐름</a>
+    <a href="#design">설계</a>
+    <a href="#bugs">트러블슈팅</a>
+    <a href="#test">테스트</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Project · Automation · 2026-10-23</div>
+    <h1>금요일 19:45, 주간 학습 요약 자동화</h1>
+    <p class="lead">매주 금요일 부트캠프가 끝날 무렵, 그날 작성한 학습 노트를 AI가 요약하고 이 포트폴리오의 "주간 학습 기록"을 갱신해 배포하는 크론잡입니다.</p>
+    <div class="cron" aria-label="크론 표현식">
+      <code>45 19 * * 5</code>
+      <span>분 45 · 시 19 · 매일 · 매월 · 금요일(5)</span>
+    </div>
+    <div class="facts">
+      <div class="fact"><span>스케줄러</span><b>Windows 작업 스케줄러</b></div>
+      <div class="fact"><span>요약</span><b>Claude Code (헤드리스 실행)</b></div>
+      <div class="fact"><span>스크립트</span><b>PowerShell</b></div>
+      <div class="fact"><span>배포</span><b>Git · GitHub Actions · Pages</b></div>
+      <div class="fact"><span>알림</span><b>텔레그램 봇</b></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">01</span>왜 만들었나</h2>
+    <p>공부한 내용은 그날 정리하지 않으면 금방 잊혀요. 매주 정리하고 포트폴리오에도 옮기는 일을 직접 하다 보니 자꾸 미루게 됐어요. 그래서 <b>정해진 시간에 컴퓨터가 알아서 정리하고, 나는 결과만 확인하는</b> 구조를 만들었습니다.</p>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="wrap">
+    <h2><span class="num">02</span>동작 흐름</h2>
+    <ol class="flow">
+      <li><span class="who">작업 스케줄러 · 자동</span><b>금요일 19:45에 스크립트 실행</b><span class="muted">로그인한 상태에서 화면에 창을 띄워 실행해요.</span></li>
+      <li><span class="who">PowerShell · 자동</span><b>오늘 수정된 노트 목록 만들기</b><span class="muted">설정·보관(Archive)·도구 폴더는 빼고, 오늘 날짜로 바뀐 <code>.md</code> 파일만 골라요.</span></li>
+      <li><span class="who">Claude · 자동</span><b>학습 요약 노트 작성</b><span class="muted"><code>날짜_학습요약.md</code>에 "한 문장 요약, 오늘 배운 것, 기억할 점, 다음에 해 볼 것"을 정리해요.</span></li>
+      <li><span class="who">Claude · 자동</span><b>포트폴리오 "주간 학습 기록" 갱신</b><span class="muted">HTML에 표시해 둔 칸 안에만 오늘 항목을 추가하고, 최신 8개만 남겨요.</span></li>
+      <li><span class="who">PowerShell · 자동</span><b>망가진 곳이 없는지 확인</b><span class="muted">표시 칸과 HTML 끝부분이 그대로인지 확인하고, 문제가 있으면 업로드를 멈춰요.</span></li>
+      <li><span class="who me">사람 · 로그인 한 번</span><b>GitHub 업로드</b><span class="muted">로그인 창이 뜨면 로그인해요. 업로드가 끝나면 로그인 정보를 지워요.</span></li>
+      <li><span class="who">GitHub Actions · 자동</span><b>검사 → 사이트 배포 → 텔레그램 알림</b><span class="muted">성공해도 실패해도 결과를 텔레그램으로 받아요.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">03</span>구성 파일</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>파일</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><code>run-weekly.ps1</code></td><td>전체 흐름을 실행하는 스크립트. 실행 기록을 날짜별 로그로 남겨요</td></tr>
+          <tr><td><code>prompt.md</code></td><td>Claude에게 주는 작업 지시문. 요약 형식, 고쳐도 되는 범위, 넣으면 안 되는 정보를 정해요</td></tr>
+          <tr><td><code>register-task.ps1</code></td><td>작업 스케줄러에 금요일 19:45 작업을 등록하거나 지워요</td></tr>
+          <tr><td><code>publish.ps1</code></td><td>포트폴리오 폴더를 GitHub 저장소로 복사·업로드해요</td></tr>
+          <tr><td><code>.github/workflows/deploy.yml</code></td><td>GitHub에서 기본 검사, Pages 배포, 텔레그램 알림을 해요</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="design">
+  <div class="wrap">
+    <h2><span class="num">04</span>설계하며 정한 것</h2>
+    <div class="cards">
+      <div class="card"><span class="q">AI에게 어디까지 맡길까?</span><b>파일 읽기·쓰기만 허용</b><p>예약 실행되는 Claude는 명령 실행과 인터넷 사용을 막았어요. 사람이 보지 않는 동안 할 수 있는 일을 최소로 줄였어요.</p></div>
+      <div class="card"><span class="q">공개 페이지를 AI가 고쳐도 될까?</span><b>표시한 칸 안만 수정</b><p>HTML에 시작·끝 표시를 넣고 그 사이만 고치게 했어요. 다른 사람 이름, 계정, 개인 일상은 넣지 않도록 지시문에 적었어요.</p></div>
+      <div class="card"><span class="q">공용 컴퓨터에서 로그인은?</span><b>저장하지 않기</b><p>완전 자동 대신 업로드 때 한 번 로그인하는 방식을 골랐어요. 금요일 19:45는 수업 중이라 컴퓨터 앞에 있는 시간이에요.</p></div>
+      <div class="card"><span class="q">기록할 게 없는 날은?</span><b>지어내지 않기</b><p>오늘 바뀐 노트가 없으면 "기록된 학습 내용이 없어요"라고만 쓰고 포트폴리오는 고치지 않아요.</p></div>
+      <div class="card"><span class="q">Git 폴더는 어디에?</span><b>클라우드 동기화 폴더 밖</b><p>노트는 클라우드 드라이브에 있지만, 업로드용 Git 복사본은 로컬에 따로 두어 동기화 충돌을 막았어요.</p></div>
+      <div class="card"><span class="q">확장 프로그램이 업데이트되면?</span><b>실행 파일을 매번 찾기</b><p>Claude 실행 파일 경로에 버전 번호가 들어 있어서, 실행할 때마다 가장 최신 파일을 찾아 써요.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">05</span>핵심 코드</h2>
+    <pre><code>$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At "19:45"
+$principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive</code></pre>
+    <p class="cap">작업 스케줄러 등록. 로그인 창이 보여야 해서 "로그인한 상태에서 화면에 띄워 실행"으로 설정했어요.</p>
+    <pre><code>$prompt | &amp; $claude -p `
+  --allowedTools "Read,Write,Edit,Glob,Grep" `
+  --disallowedTools "Bash,PowerShell,WebFetch,WebSearch"</code></pre>
+    <p class="cap">Claude 예약 실행. 허용 도구를 파일 읽기·쓰기로 제한했어요.</p>
+    <pre><code>- name: 텔레그램 알림
+  if: always()   # 실패해도 알림을 보내기 위해 꼭 필요</code></pre>
+    <p class="cap">GitHub Actions. 이 줄이 없으면 앞 단계가 실패했을 때 알림 단계가 건너뛰어져요.</p>
+  </div>
+</section>
+
+<section id="bugs">
+  <div class="wrap">
+    <h2><span class="num">06</span>트러블슈팅</h2>
+    <div class="bugs">
+
+      <article class="bug">
+        <span class="id">ISSUE-W01 · PowerShell</span><span class="state">RESOLVED</span>
+        <h3>업로드 스크립트를 시험했더니 아무 반응 없이 멈춤</h3>
+        <dl>
+          <dt>현상</dt><dd>"저장소를 내려받아요" 메시지 다음에서 멈추고, git 프로세스도 생기지 않음</dd>
+          <dt>원인</dt><dd>스크립트 안에 만든 <code>Git</code> 함수가 <code>git</code> 명령과 이름이 겹침. PowerShell은 대소문자를 구분하지 않아서 함수가 자기 자신을 끝없이 호출</dd>
+          <dt>해결</dt><dd>함수 이름을 <code>Invoke-Git</code>으로 바꾸고 <code>git.exe</code>를 직접 호출. 가짜 저장소로 처음부터 다시 시험</dd>
+        </dl>
+      </article>
+
+      <article class="bug prevent">
+        <span class="id">ISSUE-W02 · 인코딩</span><span class="state">PREVENTED</span>
+        <h3>한글 지시문이 AI에게 ?로 깨져 전달될 위험</h3>
+        <dl>
+          <dt>원인</dt><dd>Windows PowerShell 5.1은 다른 프로그램에 글자를 넘길 때 기본으로 ASCII를 써서 한글이 깨짐</dd>
+          <dt>예방</dt><dd>지시문을 넘기기 직전에 <code>$OutputEncoding</code>을 UTF-8로 설정. 볼트 복사본 시험에서 요약이 한글로 정상 작성되는 것을 확인</dd>
+        </dl>
+      </article>
+
+      <article class="bug prevent">
+        <span class="id">ISSUE-W03 · 오류 처리</span><span class="state">PREVENTED</span>
+        <h3>경고 메시지 하나로 스크립트 전체가 멈출 위험</h3>
+        <dl>
+          <dt>원인</dt><dd>오류가 나면 바로 멈추게 설정한 상태에서 외부 프로그램의 경고 출력까지 오류로 취급됨</dd>
+          <dt>예방</dt><dd>AI 실행 구간만 "계속 진행"으로 바꾸고, 대신 종료 코드와 결과 줄(<code>RESULT</code>)로 성공 여부를 판단</dd>
+        </dl>
+      </article>
+
+      <article class="bug">
+        <span class="id">ISSUE-W04 · 파일 시스템</span><span class="state">RESOLVED</span>
+        <h3>폴더 이름을 영문으로 바꾸려는데 "사용 중" 오류</h3>
+        <dl>
+          <dt>현상</dt><dd><code>The process cannot access the file because it is being used by another process</code></dd>
+          <dt>원인</dt><dd>열어 둔 터미널 하나의 현재 위치가 그 폴더 안이었음</dd>
+          <dt>해결</dt><dd>터미널을 상위 폴더로 옮긴 뒤 다시 이름 변경</dd>
+        </dl>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="test">
+  <div class="wrap">
+    <h2><span class="num">07</span>테스트</h2>
+    <p>실제 노트와 사이트를 망가뜨리지 않도록, 진짜 환경과 분리해서 먼저 시험했어요.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>시험</th><th>방법</th><th>결과</th></tr></thead>
+        <tbody>
+          <tr><td>업로드 처음 실행</td><td>로컬에 만든 가짜 저장소로 업로드</td><td><span class="ok">PASS</span> 파일 2개 업로드</td></tr>
+          <tr><td>바뀐 게 없을 때</td><td>같은 상태로 한 번 더 실행</td><td><span class="ok">PASS</span> 아무것도 올리지 않음</td></tr>
+          <tr><td>요약 + 포트폴리오 갱신</td><td>노트 복사본에서 업로드 없이 실행</td><td><span class="ok">PASS</span> 노트 5개 요약, 약 40초</td></tr>
+          <tr><td>수정 범위</td><td>원본과 결과 HTML 비교</td><td><span class="ok">PASS</span> 표시 칸 안의 항목 1개만 추가</td></tr>
+          <tr><td>HTML 구조</td><td>여는 태그와 닫는 태그 개수 비교</td><td><span class="ok">PASS</span> 짝이 모두 맞음</td></tr>
+          <tr><td>실제 배포</td><td>GitHub에 업로드 후 Actions 확인</td><td><span class="ok">PASS</span> 배포 성공, 사이트 응답 200</td></tr>
+          <tr><td>정기 실행</td><td>금요일 19:45 첫 실행</td><td><span class="wait">PENDING</span> 2026-10-23 첫 실행 예정</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">08</span>배운 점</h2>
+    <ul>
+      <li><b>자동화는 "사람이 안 볼 때"를 기준으로 설계해야 한다.</b> 실패하면 멈추고, 기록을 남기고, 알려 주는 장치가 기능만큼 중요했어요.</li>
+      <li><b>테스트는 진짜 환경과 떨어진 곳에서 먼저.</b> 가짜 저장소와 노트 복사본 덕분에 멈춤 버그를 실제 데이터에 영향 없이 찾았어요.</li>
+      <li><b>AI에게 맡길수록 범위를 좁게.</b> 쓸 수 있는 도구와 고칠 수 있는 칸을 정해 두니 결과를 믿고 볼 수 있었어요.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 곽재현 · 이 프로젝트는 AI 도구(Claude Code)와 함께 설계하고 만들었으며, 테스트와 배포 확인은 직접 했습니다.</span>
+    <a href="../index.html">← 포트폴리오로 돌아가기</a>
+  </div>
+</footer>
+
+</body>
+</html>

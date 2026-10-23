@@ -172,7 +172,7 @@ footer .wrap { padding-block: 24px 40px; font-size: 13.5px; color: var(--muted);
     </div>
     <div class="run" aria-label="이 포트폴리오에 담긴 내용 요약">
       <span class="dim">$ run portfolio --summary</span>
-      <span><span class="ok">PASS</span> 프로젝트 3개 · 공개 데모 1개</span>
+      <span><span class="ok">PASS</span> 프로젝트 4개 · 공개 데모 1개</span>
       <span><span class="ok">PASS</span> 해결한 문제 5건 기록</span>
       <span><span class="ok">PASS</span> 사용 언어 C/C++ · Java · Python</span>
     </div>
@@ -264,6 +264,22 @@ footer .wrap { padding-block: 24px 40px; font-size: 13.5px; color: var(--muted);
           <li>한 사이트가 실패해도 나머지 결과는 만들고 실패 사실을 알림. 공개 업로드는 실행 전에 확인</li>
         </ul>
         <p class="note">실제 파일을 덮어쓰지 않도록 임시 폴더에서 먼저 시험한 뒤 적용했습니다.</p>
+      </article>
+
+      <article class="project">
+        <div class="head">
+          <h3>금요일 19:45 주간 학습 요약 자동화</h3>
+          <span class="stack">작업 스케줄러 · PowerShell · Claude Code · GitHub Actions</span>
+        </div>
+        <p>매주 금요일 저녁, 그날 쓴 학습 노트를 AI가 요약하고 이 포트폴리오의 "주간 학습 기록"을 갱신해 배포하는 크론잡입니다.</p>
+        <ul>
+          <li>AI는 파일 읽기·쓰기만 허용하고, 포트폴리오는 표시해 둔 칸 안만 고치게 제한</li>
+          <li>HTML이 망가지면 업로드 중단, 배포 결과는 성공·실패 모두 텔레그램으로 알림</li>
+          <li>가짜 저장소와 노트 복사본으로 먼저 시험해 멈춤 버그를 실제 데이터 영향 없이 해결</li>
+        </ul>
+        <div class="links">
+          <a href="projects/weekly-summary.html">자세히 보기 →</a>
+        </div>
       </article>
 
       <article class="project">
