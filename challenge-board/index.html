@@ -91,8 +91,45 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
 .hidden { display: none !important; }
 .sums .card { margin-bottom: 0; }
 
+/* 디자인 (a): 모은 돈 카드 + 이번 주 카드 */
+:root { --gold: #b7791f; --gold-soft: #fdf3dc; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --gold: #f6c453; --gold-soft: #3a2f14; } }
+:root[data-theme="dark"] { --gold: #f6c453; --gold-soft: #3a2f14; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 12px; margin-bottom: 12px; }
+.hero .card { margin-bottom: 0; }
+.bank { background: linear-gradient(160deg, var(--gold-soft), var(--surface) 70%); display: flex; flex-direction: column; gap: 14px; }
+.bank-top { display: flex; align-items: center; gap: 14px; }
+.jar { width: 64px; height: 64px; flex: none; }
+.jar-lid { fill: var(--gold); }
+.jar-body { fill: none; stroke: var(--gold); stroke-width: 3; }
+.coin { fill: var(--gold); opacity: .85; }
+.bank-label { margin: 0; color: var(--muted); font-size: 14px; }
+.bank-total { margin: 0; font-family: var(--font-mono); font-weight: 700; font-size: clamp(30px, 6vw, 42px); color: var(--gold); line-height: 1.15; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 13px; padding: 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.chip b { font-family: var(--font-mono); }
+.bank-note { margin: auto 0 0; font-size: 12px; color: var(--muted); }
+.week h2 { margin-bottom: 10px; }
+.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 120px; margin-bottom: 14px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar-fill { width: 100%; max-width: 34px; border-radius: 6px 6px 3px 3px; background: var(--accent-soft); min-height: 4px; }
+.bar-fill.has { background: var(--accent); }
+.bar-col.today .bar-fill { outline: 2px solid var(--gold); outline-offset: 2px; }
+.bar-col span { font-size: 12px; color: var(--muted); }
+.bar-col.today span { color: var(--fg); font-weight: 700; }
+.rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ring { display: flex; align-items: center; gap: 10px; }
+.ring svg { width: 52px; height: 52px; flex: none; transform: rotate(-90deg); }
+.ring .track { fill: none; stroke: var(--line); stroke-width: 6; }
+.ring .prog { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
+.ring b { display: block; font-family: var(--font-mono); font-size: 15px; }
+.ring small { color: var(--muted); font-size: 12px; line-height: 1.3; display: block; }
+.sum .money { font-size: 20px; }
+
 @media (max-width: 640px) {
   .sums { grid-template-columns: 1fr; }
+  .hero { grid-template-columns: 1fr; }
+  .rings { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -101,6 +138,32 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
   <h1>챌린지보드</h1>
   <p class="sub">매일 목표를 달성하면 돈이 쌓여요. 기록은 <b>이 브라우저에만</b> 저장돼요.</p>
   <p class="msg err hidden" id="storage-warn">이 브라우저에서는 저장이 안 돼요. 페이지를 닫으면 기록이 사라져요.</p>
+
+  <section class="hero" aria-label="모은 돈과 이번 주">
+    <div class="card bank">
+      <div class="bank-top">
+        <svg class="jar" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="14" y="10" width="36" height="8" rx="3" class="jar-lid"/>
+          <path d="M16 20h32c3 0 5 2 5 5v25c0 5-4 9-9 9H20c-5 0-9-4-9-9V25c0-3 2-5 5-5z" class="jar-body"/>
+          <circle cx="26" cy="46" r="7" class="coin"/><circle cx="38" cy="40" r="7" class="coin"/><circle cx="32" cy="30" r="7" class="coin"/>
+        </svg>
+        <div>
+          <p class="bank-label">모은 돈 (전체)</p>
+          <p class="bank-total" id="bank-total">0원</p>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip" id="bank-week">이번 주 +0원</span>
+        <span class="chip" id="bank-month">이번 달 0원</span>
+      </div>
+      <p class="bank-note">목표 달성: 영양제 1,000원 · 운동 2,000원 · 공부 3,000원 / 미션: 쉬움 1,000 · 보통 3,000 · 어려움 5,000원</p>
+    </div>
+    <div class="card week">
+      <h2>이번 주</h2>
+      <div class="bars" id="week-bars" role="img" aria-label="이번 주 날짜별 모은 돈"></div>
+      <div class="rings" id="week-rings"></div>
+    </div>
+  </section>
 
   <section class="sums" id="sums" aria-label="집계"></section>
 
@@ -440,7 +503,50 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     }).catch(function (err) { setMsg('backup-msg', err.message, true); });
   });
 
-  function renderAll() { renderSums(); renderRecent(); renderMissions(); }
+  // ── 디자인 (a): 모은 돈 카드, 이번 주 7일 막대, 목표 링 ──
+  var DOW = ['월', '화', '수', '목', '금', '토', '일'];
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function svg(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    return e;
+  }
+
+  function renderHero() {
+    var t = today();
+    var s = L.summarize(state, t);
+    $('bank-total').textContent = won(s.전체.돈);
+    $('bank-week').replaceChildren(document.createTextNode('이번 주 '), el('b', { text: '+' + won(s.이번주.돈) }));
+    $('bank-month').replaceChildren(document.createTextNode('이번 달 '), el('b', { text: won(s.이번달.돈) }));
+
+    var w = L.weekStats(state, t);
+    var max = Math.max(6000, Math.max.apply(null, w.days.map(function (d) { return d.돈; })));
+    var bars = $('week-bars');
+    bars.replaceChildren();
+    w.days.forEach(function (d, i) {
+      var fill = el('div', { class: 'bar-fill' + (d.돈 ? ' has' : ''), title: d.date + ' · ' + won(d.돈) });
+      fill.style.height = Math.max(4, Math.round(d.돈 / max * 100)) + '%';
+      bars.appendChild(el('div', { class: 'bar-col' + (d.date === t ? ' today' : '') }, [fill, el('span', { text: DOW[i] })]));
+    });
+    bars.setAttribute('aria-label', '이번 주 날짜별 모은 돈: ' + w.days.map(function (d, i) { return DOW[i] + ' ' + won(d.돈); }).join(', '));
+
+    var rings = $('week-rings');
+    rings.replaceChildren();
+    var C = 2 * Math.PI * 22;
+    L.GOALS.forEach(function (g) {
+      var n = w.목표별_달성일[g.key];
+      var ring = svg('svg', { viewBox: '0 0 52 52', 'aria-hidden': 'true' });
+      ring.appendChild(svg('circle', { cx: 26, cy: 26, r: 22, class: 'track' }));
+      ring.appendChild(svg('circle', { cx: 26, cy: 26, r: 22, class: 'prog', 'stroke-dasharray': C, 'stroke-dashoffset': C * (1 - n / 7) }));
+      rings.appendChild(el('div', { class: 'ring' }, [ring, el('div', {}, [
+        el('b', { text: n + ' / 7일' }),
+        el('small', { text: g.label }),
+        el('small', { text: '+' + won(g.money) + ' / 일' }),
+      ])]));
+    });
+  }
+
+  function renderAll() { renderHero(); renderSums(); renderRecent(); renderMissions(); }
 
   fillForm(today());
   $('m-start').value = today();

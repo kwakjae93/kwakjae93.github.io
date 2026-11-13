@@ -259,6 +259,26 @@
     return s;
   }
 
+  // 이번 주 7일(월~일)의 날짜별 금액(미션 포함)과 목표별 달성한 날 수 (디자인 a: 7일 막대·목표 링)
+  function weekStats(state, today) {
+    var w0 = weekStart(today);
+    var hits = {};
+    GOALS.forEach(function (g) { hits[g.key] = 0; });
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(w0, i);
+      var rec = (state.days || {})[d] || {};
+      var money = dayMoney(rec);
+      (state.missions || []).forEach(function (m) {
+        if (m.상태 === '완료' && m.완료일 === d) money += missionMoney(m);
+      });
+      var j = judgeDay(rec);
+      GOALS.forEach(function (g) { if (j[g.key] === true) hits[g.key]++; });
+      days.push({ date: d, 돈: money });
+    }
+    return { days: days, 목표별_달성일: hits };
+  }
+
   function summarize(state, today) {
     var w0 = weekStart(today), w1 = addDays(w0, 6), mon = monthOf(today);
     return {
@@ -272,7 +292,7 @@
     GOALS: GOALS, LEVELS: LEVELS, judgeDay: judgeDay, dayMoney: dayMoney,
     isDate: isDate, addDays: addDays, weekStart: weekStart, monthOf: monthOf,
     newMission: newMission, addProgress: addProgress, giveUp: giveUp, missionMoney: missionMoney,
-    summarize: summarize,
+    summarize: summarize, weekStats: weekStats,
     FIELDS: FIELDS, parseState: parseState, setDay: setDay,
     addMission: addMission, progressMission: progressMission, giveUpMission: giveUpMission,
     deleteMission: deleteMission, exportState: exportState, importState: importState,
