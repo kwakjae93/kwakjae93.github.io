@@ -61,6 +61,8 @@
 
   // ── 미션: 완료형·횟수형. 추가할 때 금액을 정하고 완료하면 그 금액 (R8·R9) ──
   var TYPES = ['완료형', '횟수형'];
+  // 미션 금액은 난이도로 정함 (2026-11-13 R9 다시)
+  var LEVELS = { 쉬움: 1000, 보통: 3000, 어려움: 5000 };
 
   function newMission(input, id) {
     var 이름 = String(input.이름 || '').trim();
@@ -68,8 +70,8 @@
     if (TYPES.indexOf(input.종류) < 0) throw new Error('종류는 완료형 또는 횟수형이에요');
     if (!isDate(input.시작일)) throw new Error('시작일 날짜를 확인해 주세요');
     if (!isBlank(input.마감일) && !isDate(input.마감일)) throw new Error('마감일 날짜를 확인해 주세요');
-    var 금액 = Number(input.금액);
-    if (!(금액 >= 0) || Math.floor(금액) !== 금액) throw new Error('금액은 0 이상의 정수예요');
+    if (!Object.prototype.hasOwnProperty.call(LEVELS, input.난이도)) throw new Error('난이도는 쉬움, 보통, 어려움 중 하나예요');
+    var 금액 = LEVELS[input.난이도];
     var isCount = input.종류 === '횟수형';
     var 목표 = Number(input.목표_횟수);
     if (isCount && !(목표 >= 1 && Math.floor(목표) === 목표)) throw new Error('횟수형은 목표 횟수(1 이상)가 필요해요');
@@ -77,7 +79,7 @@
       id: id, 이름: 이름, 종류: input.종류, 상태: '진행 중',
       시작일: input.시작일, 마감일: isBlank(input.마감일) ? null : input.마감일,
       목표_횟수: isCount ? 목표 : null, 현재_횟수: isCount ? 0 : null,
-      금액: 금액, 완료일: null, 기록: [],
+      난이도: input.난이도, 금액: 금액, 완료일: null, 기록: [],
     };
   }
 
@@ -204,6 +206,39 @@
     return updateMission(state, id, function (m) { return giveUp(m, date); });
   }
 
+  // 잘못 만든 미션 지우기 (보완 3). 포기와 달리 기록이 남지 않음
+  function deleteMission(state, id) {
+    var list = state.missions.filter(function (m) { return m.id !== id; });
+    if (list.length === state.missions.length) throw new Error('미션을 찾을 수 없어요: ' + id);
+    return withMissions(state, list);
+  }
+
+  // ── 내보내기·불러오기 (보완 4). 불러오면 지금 기록을 통째로 바꿈 ──
+  var APP = 'challenge-board';
+
+  function exportState(state) {
+    return JSON.stringify({ app: APP, version: 1, days: state.days, missions: state.missions }, null, 2);
+  }
+
+  var MISSION_STATES = ['진행 중', '완료', '포기'];
+
+  function importState(text) {
+    var o;
+    try { o = JSON.parse(text); } catch (e) { throw new Error('파일을 읽을 수 없어요 (JSON 형식이 아니에요)'); }
+    if (!o || o.app !== APP) throw new Error('챌린지보드 백업 파일이 아니에요');
+    // 하루 기록은 setDay로 하나씩 검사 (날짜·값이 틀리면 여기서 오류)
+    var s = emptyState();
+    var days = o.days && typeof o.days === 'object' ? o.days : {};
+    Object.keys(days).forEach(function (d) { s = setDay(s, d, days[d]); });
+    var missions = Array.isArray(o.missions) ? o.missions : [];
+    missions.forEach(function (m, i) {
+      var ok = m && m.id && String(m.이름 || '').trim() && TYPES.indexOf(m.종류) >= 0 &&
+        MISSION_STATES.indexOf(m.상태) >= 0 && Number(m.금액) >= 0;
+      if (!ok) throw new Error((i + 1) + '번째 미션 정보가 올바르지 않아요');
+    });
+    return { version: 1, days: s.days, missions: missions };
+  }
+
   // ── 집계: 이번 주(월요일 시작)·이번 달·전체 (R11). 미션 돈은 완료일 기준 ──
   function num(v) { return isBlank(v) ? 0 : Number(v) || 0; }
 
@@ -234,11 +269,12 @@
   }
 
   return {
-    GOALS: GOALS, judgeDay: judgeDay, dayMoney: dayMoney,
+    GOALS: GOALS, LEVELS: LEVELS, judgeDay: judgeDay, dayMoney: dayMoney,
     isDate: isDate, addDays: addDays, weekStart: weekStart, monthOf: monthOf,
     newMission: newMission, addProgress: addProgress, giveUp: giveUp, missionMoney: missionMoney,
     summarize: summarize,
     FIELDS: FIELDS, parseState: parseState, setDay: setDay,
     addMission: addMission, progressMission: progressMission, giveUpMission: giveUpMission,
+    deleteMission: deleteMission, exportState: exportState, importState: importState,
   };
 });
