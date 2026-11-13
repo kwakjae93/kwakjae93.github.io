@@ -279,6 +279,17 @@
     return { days: days, 목표별_달성일: hits };
   }
 
+  // 연속 달성 (보완 6): 목표를 하나 이상 달성한 날이 오늘까지 며칠 이어졌는지.
+  // 오늘 아직 달성 못 했으면 어제부터 셈 (하루가 끝나기 전엔 끊지 않음)
+  function streak(state, today) {
+    var days = state.days || {};
+    var hit = function (d) { return dayMoney(days[d] || {}) > 0; };
+    var d = hit(today) ? today : addDays(today, -1);
+    var n = 0;
+    while (hit(d)) { n++; d = addDays(d, -1); }
+    return n;
+  }
+
   function summarize(state, today) {
     var w0 = weekStart(today), w1 = addDays(w0, 6), mon = monthOf(today);
     return {
@@ -292,7 +303,7 @@
     GOALS: GOALS, LEVELS: LEVELS, judgeDay: judgeDay, dayMoney: dayMoney,
     isDate: isDate, addDays: addDays, weekStart: weekStart, monthOf: monthOf,
     newMission: newMission, addProgress: addProgress, giveUp: giveUp, missionMoney: missionMoney,
-    summarize: summarize, weekStats: weekStats,
+    summarize: summarize, weekStats: weekStats, streak: streak,
     FIELDS: FIELDS, parseState: parseState, setDay: setDay,
     addMission: addMission, progressMission: progressMission, giveUpMission: giveUpMission,
     deleteMission: deleteMission, exportState: exportState, importState: importState,

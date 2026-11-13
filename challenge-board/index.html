@@ -106,14 +106,52 @@ h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 
 .check-row small { color: var(--muted); }
 
 /* 요일 막대 */
-.wbars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 170px; }
+.wbars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: end; height: 170px; }
 .wcol { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; position: relative; }
 .wfill { width: 100%; max-width: 46px; border-radius: 14px; background: var(--surface-2); min-height: 10px; }
 .wfill.has { background: var(--accent-soft); }
 .wcol.today .wfill { background: var(--accent); }
-.tag { position: absolute; top: -4px; background: var(--ink); color: var(--ink-fg); font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
-.wcol span { font-size: 12px; color: var(--muted); }
-.wcol.today span { color: var(--fg); font-weight: 700; }
+.tag { background: var(--ink); color: var(--ink-fg); font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.wcol > span:last-child { font-size: 12px; color: var(--muted); }
+.wcol.today > span:last-child { color: var(--fg); font-weight: 700; }
+.wfill { transform-origin: bottom; animation: growy .7s cubic-bezier(.2,.8,.2,1) both; }
+.week-card { position: relative; }
+.week-empty { position: absolute; left: 20px; right: 20px; top: 64px; text-align: center; color: var(--muted); font-size: 14px; margin: 0; }
+
+/* 처음 화면 안내 */
+.welcome { background: linear-gradient(120deg, var(--lime) 0%, var(--accent-soft) 100%); color: var(--lime-fg); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.welcome .wave { font-size: 40px; line-height: 1; }
+.welcome .grow { flex: 1 1 220px; }
+.welcome h2 { margin: 0 0 4px; font-size: 20px; color: var(--lime-fg); }
+.welcome p { margin: 0; font-size: 14px; }
+.btn.big { padding: 14px 24px; font-size: 16px; }
+
+/* 연속 달성 */
+.streak { background: var(--gold-soft); color: var(--gold); border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 700; }
+.streak b { font-family: var(--font-mono); }
+.streak.on .fire { display: inline-block; animation: flicker 1.6s ease-in-out infinite; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 움직임 */
+.track-h span { transform-origin: left; animation: growx .7s cubic-bezier(.2,.8,.2,1) both; }
+.mring .prog { transition: stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1); }
+@keyframes growx { from { transform: scaleX(0); } }
+@keyframes growy { from { transform: scaleY(0); } }
+@keyframes flicker { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.15) rotate(-6deg); } }
+.coin-toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); background: var(--ink); color: var(--lime); font-family: var(--font-mono); font-weight: 700; padding: 12px 20px; border-radius: 999px; z-index: 10; animation: toast 2.2s ease both; pointer-events: none; }
+.coin { position: fixed; top: -40px; font-size: 28px; z-index: 9; pointer-events: none; animation: drop 1.4s cubic-bezier(.4,0,.6,1) both; }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, 20px); } 15%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -10px); } }
+@keyframes drop { 0% { transform: translateY(0) rotate(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(80vh) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .coin { display: none; }
+}
+
+/* 칸마다 색 */
+.check-row.g1 { background: var(--c1-soft); } .check-row.g2 { background: var(--c2-soft); } .check-row.g3 { background: var(--c3-soft); }
+.stat.s0 { background: var(--gold-soft); } .stat.s1 { background: var(--c2-soft); } .stat.s2 { background: var(--c3-soft); } .stat.s3 { background: var(--c4-soft); }
+.empty-box { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; background: var(--c3-soft); border-radius: 16px; }
+.empty-box p { margin: 0; color: var(--fg); font-size: 14px; }
 
 /* 작은 숫자 목록 */
 .stat-list { display: grid; gap: 8px; }
@@ -169,8 +207,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
 }
 @media (max-width: 520px) {
   .money-card { flex-direction: column; align-items: flex-start; }
-  .prog-row { grid-template-columns: 36px 1fr auto; }
-  .prog-row .track-h { grid-column: 1 / -1; }
+  .prog-row { grid-template-columns: 36px 1fr auto; row-gap: 6px; }
+  .prog-row > :nth-child(1) { grid-row: 1 / 3; }
+  .prog-row > :nth-child(3) { grid-column: 2 / 4; grid-row: 2; }
+  .prog-row > :nth-child(4) { grid-column: 3; grid-row: 1; }
   .wbars { height: 140px; gap: 6px; }
 }
 </style>
@@ -194,9 +234,21 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     <p class="greet" id="greet">오늘도 한 걸음</p>
     <div class="headline">
       <h1>나의 취업 챌린지</h1>
-      <span class="range">📅 이번 주 <b id="range">-</b></span>
+      <div class="chips">
+        <span class="streak" id="streak"><span class="fire" aria-hidden="true">🔥</span> <b>0</b>일 연속</span>
+        <span class="range">📅 이번 주 <b id="range">-</b></span>
+      </div>
     </div>
     <div class="grid">
+      <article class="card welcome span-12 hidden" id="welcome">
+        <span class="wave" aria-hidden="true">👋</span>
+        <div class="grow">
+          <h2>첫 기록을 남겨 보세요</h2>
+          <p>오늘 영양제·운동·공부를 적으면 목표마다 돈이 쌓여요. 하루라도 적으면 링과 막대가 채워져요.</p>
+        </div>
+        <button type="button" class="btn primary big" data-go="day">✏️ 오늘 기록하기</button>
+      </article>
+
       <article class="card money-card span-5">
         <div class="mring" aria-hidden="true">
           <svg viewBox="0 0 132 132"><circle class="track" cx="66" cy="66" r="54"/><circle class="prog" id="mring-prog" cx="66" cy="66" r="54"/></svg>
@@ -220,8 +272,9 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
         <div id="today-list"></div>
       </article>
 
-      <article class="card span-7">
+      <article class="card week-card span-7">
         <div class="card-head"><h2>이번 주 모은 돈</h2></div>
+        <p class="week-empty hidden" id="week-empty">이번 주 기록이 쌓이면 막대가 자라요 🌱</p>
         <div class="wbars" id="week-bars" role="img" aria-label="이번 주 날짜별 모은 돈"></div>
       </article>
 
@@ -403,8 +456,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     var v = L.summarize(state, today())[statRange];
     var box = $('stats');
     box.replaceChildren();
-    [['💰 모은 돈', won(v.돈)], ['🏃 운동', v.운동_분 + '분'], ['💻 코드·AI 공부', v.공부_분 + '분'], ['📮 지원', v.지원_건수 + '건']].forEach(function (r) {
-      box.appendChild(el('div', { class: 'stat' }, [el('span', { text: r[0] }), el('b', { text: r[1] })]));
+    [['💰 모은 돈', won(v.돈)], ['🏃 운동', v.운동_분 + '분'], ['💻 코드·AI 공부', v.공부_분 + '분'], ['📮 지원', v.지원_건수 + '건']].forEach(function (r, i) {
+      box.appendChild(el('div', { class: 'stat s' + i }, [el('span', { text: r[0] }), el('b', { text: r[1] })]));
     });
   }
 
@@ -415,11 +468,27 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     $('greet').textContent = '오늘은 ' + md(t) + ' (' + DOW[(new Date(t + 'T00:00:00Z').getUTCDay() + 6) % 7] + ') · 오늘도 한 걸음';
     $('range').textContent = md(w.days[0].date) + ' - ' + md(w.days[6].date);
 
-    // 검은 돈 카드
+    // 처음 화면 안내 (기록·미션이 하나도 없을 때만)
+    $('welcome').classList.toggle('hidden', Object.keys(state.days).length > 0 || state.missions.length > 0);
+
+    // 연속 달성
+    var st = L.streak(state, t);
+    var sk = $('streak');
+    sk.classList.toggle('on', st > 0);
+    sk.replaceChildren(el('span', { class: 'fire', 'aria-hidden': 'true', text: '🔥' }), document.createTextNode(' '));
+    if (st > 0) sk.append(el('b', { text: String(st) }), document.createTextNode('일 연속'));
+    else sk.append(document.createTextNode('오늘부터 연속 시작'));
+
+    // 검은 돈 카드 (링은 처음에 0에서 차오름)
     var pct = Math.min(100, Math.round(s.이번주.돈 / WEEK_MAX * 100));
     var C = 2 * Math.PI * 54;
-    $('mring-prog').setAttribute('stroke-dasharray', C);
-    $('mring-prog').setAttribute('stroke-dashoffset', C * (1 - pct / 100));
+    var ring = $('mring-prog');
+    ring.setAttribute('stroke-dasharray', C);
+    if (!ring.getAttribute('stroke-dashoffset')) {
+      ring.setAttribute('stroke-dashoffset', C);
+      ring.getBoundingClientRect(); // 0에서 시작하도록 한 번 그리게 함
+    }
+    ring.setAttribute('stroke-dashoffset', C * (1 - pct / 100));
     $('mring-pct').textContent = pct + '%';
     $('money-total').textContent = won(s.전체.돈);
     $('money-sub').textContent = '이번 주 ' + won(s.이번주.돈) + ' (매일 목표 최대 ' + won(WEEK_MAX) + ')';
@@ -454,7 +523,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     list.replaceChildren();
     L.GOALS.forEach(function (g) {
       var v = j[g.key];
-      var row = el('button', { class: 'check-row', type: 'button' }, [
+      var row = el('button', { class: 'check-row g' + ICON[g.key][1], type: 'button' }, [
         el('span', { class: 'dot' + (v === true ? ' ok' : v === false ? ' no' : ''), 'aria-hidden': 'true', text: v === true ? '✓' : v === false ? '✗' : '' }),
         el('span', { class: 'grow', text: ICON[g.key][0] + ' ' + g.label }),
         el('small', { text: v === true ? '+' + won(g.money) : v === false ? '아직' : '기록 없음' }),
@@ -469,18 +538,25 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     bars.replaceChildren();
     w.days.forEach(function (d, i) {
       var fill = el('div', { class: 'wfill' + (d.돈 ? ' has' : ''), title: d.date + ' · ' + won(d.돈) });
-      fill.style.height = Math.max(8, Math.round(d.돈 / max * 82)) + '%';
+      fill.style.height = Math.max(8, Math.round(d.돈 / max * 72)) + '%';
       var kids = [fill, el('span', { text: DOW[i] })];
-      if (d.date === t) kids.unshift(el('span', { class: 'tag', text: won(d.돈) }));
+      if (d.돈 > 0 && (d.date === t || d.돈 === max)) kids.unshift(el('span', { class: 'tag', text: won(d.돈) }));
       bars.appendChild(el('div', { class: 'wcol' + (d.date === t ? ' today' : '') }, kids));
     });
+    $('week-empty').classList.toggle('hidden', w.days.some(function (d) { return d.돈 > 0; }));
     bars.setAttribute('aria-label', '이번 주 날짜별 모은 돈: ' + w.days.map(function (d, i) { return DOW[i] + ' ' + won(d.돈); }).join(', '));
 
     // 진행 중인 미션 (마감 가까운 3개)
     var dm = $('dash-missions');
     dm.replaceChildren();
     var active = activeMissions().slice(0, 3);
-    if (!active.length) dm.appendChild(el('p', { class: 'empty', text: '진행 중인 미션이 없어요. "미션" 메뉴에서 추가해요.' }));
+    if (!active.length) {
+      var go = el('button', { class: 'btn primary', type: 'button', text: '🎯 미션 만들기' });
+      go.addEventListener('click', function () { show('mission'); window.scrollTo(0, 0); });
+      dm.appendChild(el('div', { class: 'empty-box' }, [
+        el('p', { text: '진행 중인 미션이 없어요. "모의면접 3번"처럼 해 보고 싶은 일을 미션으로 만들면 끝낼 때 돈이 쌓여요.' }), go,
+      ]));
+    }
     active.forEach(function (m) { dm.appendChild(missionRow(m, true)); });
 
     renderStats();
@@ -529,9 +605,12 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     e.preventDefault();
     var date = $('f-date').value;
     try {
+      var before = L.dayMoney(state.days[date] || {});
       state = L.setDay(state, date, readForm());
       save(state);
-      setMsg('day-msg', date + ' 기록을 저장했어요. 이 날 ' + won(L.dayMoney(state.days[date] || {})));
+      var after = L.dayMoney(state.days[date] || {});
+      setMsg('day-msg', date + ' 기록을 저장했어요. 이 날 ' + won(after));
+      if (after > before) celebrate(after - before);
       renderAll();
     } catch (err) { setMsg('day-msg', err.message, true); }
   });
@@ -685,6 +764,29 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
       setMsg('backup-msg', '불러왔어요: 하루 기록 ' + days + '일, 미션 ' + ms + '개');
     }).catch(function (err) { setMsg('backup-msg', err.message, true); });
   });
+
+  // 돈이 늘면 동전이 떨어지고 "+금액" 알림이 잠깐 뜸
+  function celebrate(gain) {
+    document.querySelectorAll('.coin, .coin-toast').forEach(function (x) { x.remove(); });
+    var n = Math.min(10, Math.max(3, Math.round(gain / 1000)));
+    for (var i = 0; i < n; i++) {
+      var c = el('span', { class: 'coin', 'aria-hidden': 'true', text: '🪙' });
+      c.style.left = (10 + Math.random() * 80) + 'vw';
+      c.style.animationDelay = (i * 0.08) + 's';
+      document.body.appendChild(c);
+    }
+    var t = el('div', { class: 'coin-toast', role: 'status', text: '+' + won(gain) + ' 모았어요!' });
+    document.body.appendChild(t);
+    setTimeout(function () { document.querySelectorAll('.coin, .coin-toast').forEach(function (x) { x.remove(); }); }, 2600);
+  }
+  // 미션 완료로 돈이 생길 때도 축하
+  var _act = act;
+  act = function (fn, okText) {
+    var before = L.summarize(state, today()).전체.돈;
+    _act(fn, okText);
+    var gain = L.summarize(state, today()).전체.돈 - before;
+    if (gain > 0) celebrate(gain);
+  };
 
   function renderAll() { renderDash(); renderRecent(); renderMissions(); }
 
