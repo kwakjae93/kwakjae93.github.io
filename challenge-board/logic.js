@@ -130,7 +130,16 @@
     지원_건수: 'int',
   };
 
-  function emptyState() { return { version: 1, days: {}, missions: [] }; }
+  // 게임 지갑 (보완 7): 처음 3,000원. 넣은·돌려받은 돈은 모은 돈 잔액 계산에 씀
+  var GAME_START = 3000;
+  function newGame() { return { 지갑: GAME_START, 넣은_돈: 0, 돌려받은_돈: 0 }; }
+  function cleanGame(g) {
+    if (!g || typeof g !== "object") return newGame();
+    var n = function (v, d) { v = Number(v); return v >= 0 && Math.floor(v) === v ? v : d; };
+    return { 지갑: n(g.지갑, GAME_START), 넣은_돈: n(g.넣은_돈, 0), 돌려받은_돈: n(g.돌려받은_돈, 0) };
+  }
+
+  function emptyState() { return { version: 1, days: {}, missions: [], game: newGame() }; }
 
   function parseState(text) {
     if (!text) return emptyState();
@@ -140,6 +149,7 @@
         version: 1,
         days: s && typeof s.days === 'object' && s.days ? s.days : {},
         missions: s && Array.isArray(s.missions) ? s.missions : [],
+        game: cleanGame(s && s.game),
       };
     } catch (e) {
       return emptyState();
@@ -171,12 +181,12 @@
     Object.keys(state.days).forEach(function (d) { days[d] = state.days[d]; });
     if (Object.keys(clean).length) days[date] = clean;
     else delete days[date];
-    return { version: 1, days: days, missions: state.missions };
+    return { version: 1, days: days, missions: state.missions, game: state.game || newGame() };
   }
 
   // ── 미션 목록을 기록에 넣고 고치기 ──
   function withMissions(state, missions) {
-    return { version: 1, days: state.days, missions: missions };
+    return { version: 1, days: state.days, missions: missions, game: state.game || newGame() };
   }
 
   function addMission(state, input) {
@@ -217,7 +227,7 @@
   var APP = 'challenge-board';
 
   function exportState(state) {
-    return JSON.stringify({ app: APP, version: 1, days: state.days, missions: state.missions }, null, 2);
+    return JSON.stringify({ app: APP, version: 1, days: state.days, missions: state.missions, game: state.game || newGame() }, null, 2);
   }
 
   var MISSION_STATES = ['진행 중', '완료', '포기'];
@@ -236,7 +246,7 @@
         MISSION_STATES.indexOf(m.상태) >= 0 && Number(m.금액) >= 0;
       if (!ok) throw new Error((i + 1) + '번째 미션 정보가 올바르지 않아요');
     });
-    return { version: 1, days: s.days, missions: missions };
+    return { version: 1, days: s.days, missions: missions, game: cleanGame(o.game) };
   }
 
   // ── 집계: 이번 주(월요일 시작)·이번 달·전체 (R11). 미션 돈은 완료일 기준 ──
@@ -299,7 +309,44 @@
     };
   }
 
+  // ── 게임 지갑 옮기기·걸기·받기 (보완 7) ──
+  function withGame(state, g) { return { version: 1, days: state.days, missions: state.missions, game: g }; }
+  function gameOf(state) { return cleanGame(state.game); }
+  function amountOk(n) {
+    n = Number(n);
+    if (!(n >= 1 && Math.floor(n) === n)) throw new Error("금액은 1원 이상 정수로 적어 주세요");
+    return n;
+  }
+  // 모은 돈 잔액 = 목표·미션으로 번 돈 - 게임 지갑에 넣은 돈 + 돌려받은 돈
+  function balance(state) {
+    var g = gameOf(state);
+    return total(state, function () { return true; }).돈 - g.넣은_돈 + g.돌려받은_돈;
+  }
+  function toGame(state, amount) {
+    var n = amountOk(amount), g = gameOf(state);
+    if (n > balance(state)) throw new Error("모은 돈이 부족해요");
+    return withGame(state, { 지갑: g.지갑 + n, 넣은_돈: g.넣은_돈 + n, 돌려받은_돈: g.돌려받은_돈 });
+  }
+  function fromGame(state, amount) {
+    var n = amountOk(amount), g = gameOf(state);
+    if (n > g.지갑) throw new Error("게임 지갑이 부족해요");
+    return withGame(state, { 지갑: g.지갑 - n, 넣은_돈: g.넣은_돈, 돌려받은_돈: g.돌려받은_돈 + n });
+  }
+  function bet(state, amount) {
+    var n = amountOk(amount), g = gameOf(state);
+    if (n > g.지갑) throw new Error("게임 지갑이 부족해요");
+    g.지갑 -= n;
+    return withGame(state, g);
+  }
+  function payout(state, amount) {
+    var n = Number(amount), g = gameOf(state);
+    if (!(n >= 0 && Math.floor(n) === n)) throw new Error("받는 돈이 올바르지 않아요");
+    g.지갑 += n;
+    return withGame(state, g);
+  }
+
   return {
+    GAME_START: GAME_START, balance: balance, toGame: toGame, fromGame: fromGame, bet: bet, payout: payout,
     GOALS: GOALS, LEVELS: LEVELS, judgeDay: judgeDay, dayMoney: dayMoney,
     isDate: isDate, addDays: addDays, weekStart: weekStart, monthOf: monthOf,
     newMission: newMission, addProgress: addProgress, giveUp: giveUp, missionMoney: missionMoney,

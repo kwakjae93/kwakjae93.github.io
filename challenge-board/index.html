@@ -202,7 +202,58 @@ tbody tr:hover { background: var(--surface-2); }
 .mbar span { display: block; height: 100%; background: var(--c3); }
 details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
 
+/* 게임 (보완 7) */
+.wallet { flex-wrap: wrap; justify-content: space-between; }
+.wallet .money-sub { margin-bottom: 0 !important; }
+.wallet-move { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.wallet-move label { color: var(--ink-muted); }
+.wallet-move input { background: #23272c; border-color: #33383e; color: var(--ink-fg); width: 120px; }
+.wallet .msg { flex-basis: 100%; color: var(--ink-muted); }
+.wallet .msg.err { color: #ffa070; }
+.wallet .msg:empty { display: none; }
+.btn.lime { background: var(--lime); color: var(--lime-fg); font-weight: 700; }
+.btn.dark-ghost { background: #23272c; color: var(--ink-fg); }
+.wallet-chip { display: inline-block; margin-top: 8px; color: var(--ink-muted); font-size: 13px; }
+.wallet-chip b { color: var(--ink-fg); font-family: var(--font-mono); }
+.game-pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.gp { border: 2px solid transparent; border-radius: 18px; padding: 14px; text-align: left; cursor: pointer; color: var(--fg); font: inherit; display: flex; flex-direction: column; gap: 4px; }
+.gp .ic { font-size: 28px; line-height: 1; }
+.gp b { font-size: 16px; }
+.gp small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.gp[aria-pressed="true"] { border-color: var(--fg); }
+.gp:disabled { opacity: .45; cursor: not-allowed; }
+.gp.g1 { background: var(--c1-soft); } .gp.g2 { background: var(--c2-soft); } .gp.g3 { background: var(--c3-soft); } .gp.g4 { background: var(--c4-soft); }
+.bet-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-bottom: 18px; }
+.chip-btn { border: 0; background: var(--surface-2); color: var(--fg); border-radius: 999px; padding: 8px 14px; cursor: pointer; font: inherit; font-size: 13px; }
+.stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0 4px; text-align: center; }
+.result { font-size: 18px; font-weight: 700; min-height: 1.6em; margin: 0; }
+.result.win { color: var(--c2); } .result.lose { color: var(--fail); }
+/* 룰렛 */
+.wheel-wrap { position: relative; width: min(300px, 78vw); aspect-ratio: 1; }
+.pointer { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 24px solid var(--fg); z-index: 2; }
+.wheel { width: 100%; height: 100%; border-radius: 50%; position: relative; border: 6px solid var(--ink); transition: transform 3s cubic-bezier(.15,.8,.15,1);
+  background: conic-gradient(#f59e0b 0 45deg, #22a06b 45deg 90deg, #7c5cf0 90deg 135deg, #2f80ed 135deg 180deg, #f59e0b 180deg 225deg, #22a06b 225deg 270deg, #7c5cf0 270deg 315deg, #c2410c 315deg 360deg); }
+.wheel span { position: absolute; inset: 0; text-align: center; padding-top: 9%; color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.wheel::after { content: ""; position: absolute; inset: 38%; border-radius: 50%; background: var(--ink); }
+/* 가위바위보 */
+.hands { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.hand { border: 0; background: var(--surface-2); border-radius: 22px; width: 96px; height: 96px; font-size: 40px; cursor: pointer; display: grid; place-items: center; }
+.hand small { font-size: 13px; color: var(--muted); display: block; }
+.vs { font-size: 44px; display: flex; gap: 18px; align-items: center; }
+.vs small { font-size: 14px; color: var(--muted); }
+/* 업다운 */
+.ud-row { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.ud-log { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.ud-log span { background: var(--surface-2); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-family: var(--font-mono); }
+/* 카드 */
+.cards { display: flex; gap: 14px; align-items: center; }
+.pcard { width: 92px; height: 128px; border-radius: 14px; background: var(--surface); border: 2px solid var(--fg); display: grid; place-items: center; font-family: var(--font-display); font-size: 44px; box-shadow: 0 6px 0 var(--line); }
+.pcard.dim { opacity: .4; font-size: 32px; }
+.pcard.flip { animation: flip .4s ease; }
+@keyframes flip { from { transform: rotateY(90deg); } }
+
 @media (max-width: 860px) {
+  .game-pick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .span-5, .span-7, .span-6, .span-4, .span-8 { grid-column: span 12; }
 }
 @media (max-width: 520px) {
@@ -223,6 +274,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
       <button class="tab" role="tab" data-view="dash" aria-selected="true">대시보드</button>
       <button class="tab" role="tab" data-view="day" aria-selected="false">하루 기록</button>
       <button class="tab" role="tab" data-view="mission" aria-selected="false">미션</button>
+      <button class="tab" role="tab" data-view="game" aria-selected="false">게임</button>
       <button class="tab" role="tab" data-view="backup" aria-selected="false">백업</button>
     </div>
   </nav>
@@ -259,6 +311,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
           <p class="money-total" id="money-total">0원</p>
           <p class="money-sub" id="money-sub">이번 주 최대 42,000원 중 0원</p>
           <span class="pill-lime" id="money-month">이번 달 <b>0원</b></span>
+          <br><button type="button" class="wallet-chip link-like" data-go="game" style="border:0;background:none;padding:0;cursor:pointer;font:inherit;font-size:13px">🎮 게임 지갑 <b id="money-wallet">3,000원</b> ↗</button>
         </div>
       </article>
 
@@ -373,6 +426,50 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     </div>
   </section>
 
+  <!-- ── 게임 (보완 7) ── -->
+  <section data-panel="game" class="hidden">
+    <div class="headline"><h1>게임</h1></div>
+    <div class="grid">
+      <article class="card money-card wallet span-12">
+        <div>
+          <h2>🎮 게임 지갑</h2>
+          <p class="money-total" id="g-wallet">3,000원</p>
+          <p class="money-sub" id="g-balance">모은 돈 0원</p>
+        </div>
+        <div class="wallet-move">
+          <label class="field">옮길 돈 <input type="number" id="g-move" min="1" step="100" inputmode="numeric" placeholder="1000"></label>
+          <button type="button" class="btn lime" id="g-in">모은 돈 → 지갑</button>
+          <button type="button" class="btn dark-ghost" id="g-out">지갑 → 모은 돈</button>
+        </div>
+        <p class="msg" id="g-move-msg" aria-live="polite"></p>
+      </article>
+
+      <article class="card span-12">
+        <h2>게임 고르기</h2>
+        <div class="game-pick" id="game-pick">
+          <button type="button" class="gp g1" data-game="룰렛" aria-pressed="true"><span class="ic" aria-hidden="true">🎡</span><b>동전 룰렛</b><small>돌려서 나온 배수만큼 받아요 (0~3배)</small></button>
+          <button type="button" class="gp g2" data-game="가위바위보" aria-pressed="false"><span class="ic" aria-hidden="true">✌️</span><b>가위바위보</b><small>이기면 2배, 비기면 그대로, 지면 0</small></button>
+          <button type="button" class="gp g3" data-game="업다운" aria-pressed="false"><span class="ic" aria-hidden="true">🔢</span><b>업다운</b><small>1~100 숫자를 6번 안에 맞히면 1.5배</small></button>
+          <button type="button" class="gp g4" data-game="카드" aria-pressed="false"><span class="ic" aria-hidden="true">🃏</span><b>카드 높낮이</b><small>맞힐 때마다 ×1.3, 언제든 받기</small></button>
+        </div>
+      </article>
+
+      <article class="card span-12">
+        <div class="card-head"><h2 id="g-title">동전 룰렛</h2></div>
+        <div class="bet-row" id="bet-row">
+          <label class="field">건 돈 <input type="number" id="g-bet" min="1" step="100" inputmode="numeric" value="500"></label>
+          <button type="button" class="chip-btn" data-bet="100">100</button>
+          <button type="button" class="chip-btn" data-bet="500">500</button>
+          <button type="button" class="chip-btn" data-bet="1000">1,000</button>
+          <button type="button" class="chip-btn" data-bet="all">전부</button>
+        </div>
+        <div id="g-area"></div>
+        <p class="msg" id="g-msg" aria-live="polite"></p>
+        <p class="hint" style="margin:8px 0 0">게임 중에 페이지를 닫으면 건 돈은 돌아오지 않아요.</p>
+      </article>
+    </div>
+  </section>
+
   <!-- ── 백업 ── -->
   <section data-panel="backup" class="hidden">
     <div class="headline"><h1>백업</h1></div>
@@ -391,6 +488,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
 </main>
 
 <script src="logic.js"></script>
+<script src="games.js"></script>
 <script>
 (function () {
   var L = window.ChallengeLogic;
@@ -490,7 +588,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     }
     ring.setAttribute('stroke-dashoffset', C * (1 - pct / 100));
     $('mring-pct').textContent = pct + '%';
-    $('money-total').textContent = won(s.전체.돈);
+    $('money-total').textContent = won(L.balance(state));
+    $('money-wallet').textContent = won(state.game.지갑);
     $('money-sub').textContent = '이번 주 ' + won(s.이번주.돈) + ' (매일 목표 최대 ' + won(WEEK_MAX) + ')';
     $('money-month').replaceChildren(document.createTextNode('이번 달 '), el('b', { text: won(s.이번달.돈) }));
 
@@ -766,7 +865,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
   });
 
   // 돈이 늘면 동전이 떨어지고 "+금액" 알림이 잠깐 뜸
-  function celebrate(gain) {
+  function celebrate(gain, word) {
     document.querySelectorAll('.coin, .coin-toast').forEach(function (x) { x.remove(); });
     var n = Math.min(10, Math.max(3, Math.round(gain / 1000)));
     for (var i = 0; i < n; i++) {
@@ -775,7 +874,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
       c.style.animationDelay = (i * 0.08) + 's';
       document.body.appendChild(c);
     }
-    var t = el('div', { class: 'coin-toast', role: 'status', text: '+' + won(gain) + ' 모았어요!' });
+    var t = el('div', { class: 'coin-toast', role: 'status', text: '+' + won(gain) + ' ' + (word || '모았어요!') });
     document.body.appendChild(t);
     setTimeout(function () { document.querySelectorAll('.coin, .coin-toast').forEach(function (x) { x.remove(); }); }, 2600);
   }
@@ -788,13 +887,216 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin:
     if (gain > 0) celebrate(gain);
   };
 
-  function renderAll() { renderDash(); renderRecent(); renderMissions(); }
+  // ── 게임 (보완 7). 계산은 games.js, 돈은 logic.js ──
+  var G = window.ChallengeGames;
+  var game = '룰렛';
+  var play = null;      // 업다운·카드처럼 여러 번 하는 게임의 진행 상태 (저장 안 함)
+  var playBet = 0;
+  var wheelRot = 0;
+  var spinning = false;
+  var GAME_TITLE = { 룰렛: '🎡 동전 룰렛', 가위바위보: '✌️ 가위바위보', 업다운: '🔢 업다운', 카드: '🃏 카드 높낮이' };
+  var HAND_IC = { 가위: '✌️', 바위: '✊', 보: '🖐️' };
+
+  function renderWallet() {
+    $('g-wallet').textContent = won(state.game.지갑);
+    $('g-balance').textContent = '모은 돈 ' + won(L.balance(state)) + ' · 처음 받은 게임 돈 ' + won(L.GAME_START);
+  }
+  function move(fn, okText) {
+    try {
+      state = fn(state, $('g-move').value);
+      save(state);
+      setMsg('g-move-msg', okText(Number($('g-move').value)));
+      $('g-move').value = '';
+      renderAll();
+    } catch (err) { setMsg('g-move-msg', err.message, true); }
+  }
+  $('g-in').addEventListener('click', function () { move(L.toGame, function (n) { return won(n) + '을 게임 지갑에 넣었어요.'; }); });
+  $('g-out').addEventListener('click', function () { move(L.fromGame, function (n) { return won(n) + '을 모은 돈으로 돌려보냈어요.'; }); });
+
+  document.querySelectorAll('[data-bet]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $('g-bet').value = b.dataset.bet === 'all' ? state.game.지갑 : b.dataset.bet;
+    });
+  });
+  document.querySelectorAll('.gp').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (play || spinning) return;
+      game = b.dataset.game;
+      setMsg('g-msg', '');
+      renderGame();
+    });
+  });
+
+  // 걸기: 성공하면 건 돈, 실패하면 0
+  function takeBet() {
+    try {
+      var n = Number($('g-bet').value);
+      state = L.bet(state, n);
+      save(state);
+      setMsg('g-msg', '');
+      lastResult = null;
+      return n;
+    } catch (err) { setMsg('g-msg', err.message, true); return 0; }
+  }
+  // 끝: 받은 돈을 지갑에 넣고 결과 글. after = 다시 그린 뒤 결과 화면(카드·손)을 보여 주는 함수
+  var lastResult = null;
+  function settle(betN, 배수, text, after) {
+    var got = G.prize(betN, 배수);
+    state = L.payout(state, got);
+    save(state);
+    var net = got - betN;
+    lastResult = {
+      text: text + ' · ' + (net > 0 ? '+' + won(net) : net < 0 ? '-' + won(-net) : '본전'),
+      cls: 'result' + (net > 0 ? ' win' : net < 0 ? ' lose' : ''),
+      after: after,
+    };
+    if (net > 0) celebrate(net, '땄어요!');
+    renderAll();
+  }
+  function lockPick() {
+    var busy = !!play || spinning;
+    document.querySelectorAll('.gp').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.game === game));
+      b.disabled = busy && b.dataset.game !== game;
+    });
+    $('bet-row').querySelectorAll('input, button').forEach(function (x) { x.disabled = busy; });
+  }
+  function btn(text, cls, fn) {
+    var b = el('button', { type: 'button', class: 'btn ' + (cls || 'primary'), text: text });
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  function renderGame() {
+    renderWallet();
+    $('g-title').textContent = GAME_TITLE[game];
+    lockPick();
+    var area = $('g-area');
+    area.replaceChildren();
+    var stage = el('div', { class: 'stage' });
+    area.appendChild(stage);
+
+    if (game === '룰렛') {
+      var wheel = el('div', { class: 'wheel', id: 'wheel' });
+      G.ROULETTE.forEach(function (m, i) {
+        var lab = el('span', { text: '×' + m });
+        lab.style.transform = 'rotate(' + (i * 45 + 22.5) + 'deg)';
+        wheel.appendChild(lab);
+      });
+      wheel.style.transform = 'rotate(' + wheelRot + 'deg)';
+      stage.append(el('div', { class: 'wheel-wrap' }, [el('div', { class: 'pointer', 'aria-hidden': 'true' }), wheel]),
+        el('p', { class: 'result', id: 'g-result', 'aria-live': 'polite' }),
+        btn('🎡 돌리기', 'primary big', function () {
+          if (spinning) return;
+          var b = takeBet(); if (!b) return;
+          var r = G.spin(Math.random);
+          spinning = true; lockPick(); this.disabled = true;
+          var target = (360 - (r.칸 * 45 + 22.5)) % 360;
+          wheelRot = wheelRot - (wheelRot % 360) + 360 * 5 + target;
+          wheel.style.transform = 'rotate(' + wheelRot + 'deg)';
+          var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+          setTimeout(function () { spinning = false; settle(b, r.배수, '×' + r.배수 + ' 나왔어요'); }, reduce ? 50 : 3100);
+        }));
+    }
+
+    if (game === '가위바위보') {
+      var vs = el('div', { class: 'vs', id: 'g-vs', 'aria-hidden': 'true' });
+      var hands = el('div', { class: 'hands' });
+      G.HANDS.forEach(function (h) {
+        var b = el('button', { type: 'button', class: 'hand', 'aria-label': h }, [el('span', { text: HAND_IC[h] }), el('small', { text: h })]);
+        b.addEventListener('click', function () {
+          var n = takeBet(); if (!n) return;
+          var r = G.rps(h, Math.random);
+          settle(n, r.배수, '컴퓨터 ' + r.컴퓨터 + ' → ' + (r.결과 === '승' ? '이겼어요' : r.결과 === '무' ? '비겼어요' : '졌어요'), function () {
+            $('g-vs').replaceChildren(el('span', { text: HAND_IC[h] }), el('small', { text: 'vs' }), el('span', { text: HAND_IC[r.컴퓨터] }));
+          });
+        });
+        hands.appendChild(b);
+      });
+      stage.append(vs, el('p', { class: 'result', id: 'g-result', 'aria-live': 'polite' }), hands);
+    }
+
+    if (game === '업다운') {
+      if (!play) {
+        stage.append(el('p', { class: 'result', id: 'g-result', 'aria-live': 'polite' }),
+          el('p', { class: 'hint', text: '1~100 사이 숫자 하나를 정해 둘게요. 6번 안에 맞히면 건 돈의 1.5배!' }),
+          btn('🔢 시작 (건 돈 내기)', 'primary big', function () {
+            var n = takeBet(); if (!n) return;
+            play = G.newUpDown(Math.random); playBet = n; renderAll();
+          }));
+      } else {
+        var input = el('input', { type: 'number', min: '1', max: '100', step: '1', inputmode: 'numeric', id: 'ud-in', 'aria-label': '숫자' });
+        var guess = function () {
+          try { play = G.guessUpDown(play, input.value); }
+          catch (err) { setMsg('g-msg', err.message, true); return; }
+          setMsg('g-msg', '');
+          if (play.끝) {
+            var p = play, b = playBet; play = null;
+            settle(b, p.배수, p.힌트 === '정답' ? '정답! ' + p.정답 : '아쉬워요, 정답은 ' + p.정답);
+          } else { renderGame(); $('ud-in').focus(); }
+        };
+        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') guess(); });
+        stage.append(
+          el('p', { class: 'result', id: 'g-result', text: play.힌트 ? (play.힌트 === '업' ? '⬆️ 업! 더 커요' : '⬇️ 다운! 더 작아요') : '숫자를 적어 보세요' }),
+          el('p', { class: 'hint', text: '남은 기회 ' + play.남은 + '번 · 건 돈 ' + won(playBet) }),
+          el('div', { class: 'ud-row' }, [input, btn('맞히기', 'primary', guess)]),
+          el('div', { class: 'ud-log' }, play.기록.map(function (t) { return el('span', { text: t }); })));
+      }
+    }
+
+    if (game === '카드') {
+      if (!play) {
+        stage.append(el('div', { class: 'cards' }, [el('div', { class: 'pcard dim', text: '?' })]),
+          el('p', { class: 'result', id: 'g-result', 'aria-live': 'polite' }),
+          el('p', { class: 'hint', text: '카드는 1~13. 다음 카드가 높을지 낮을지 맞혀요. 같은 숫자는 틀린 거예요.' }),
+          btn('🃏 시작 (건 돈 내기)', 'primary big', function () {
+            var n = takeBet(); if (!n) return;
+            play = G.newHighLow(Math.random); playBet = n; renderAll();
+          }));
+      } else {
+        var pick = function (side) {
+          play = G.guessHighLow(play, side, Math.random);
+          if (play.끝) {
+            var p = play, b = playBet; play = null;
+            settle(b, 0, p.이전 + ' → ' + p.카드 + ' 틀렸어요', function () {
+              $('g-area').querySelector('.cards').replaceChildren(el('div', { class: 'pcard dim', text: String(p.이전) }), el('div', { class: 'pcard flip', text: String(p.카드) }));
+            });
+          } else renderGame();
+        };
+        var cards = [el('div', { class: 'pcard flip', text: String(play.카드) })];
+        if (play.이전) cards.unshift(el('div', { class: 'pcard dim', text: String(play.이전) }));
+        var stop = btn('💰 받기 ' + won(G.prize(playBet, play.배수)), 'lime', function () {
+          var p = G.cashOut(play), b = playBet; play = null;
+          settle(b, p.배수, p.연속 + '번 연속 맞힘, ×' + p.배수, function () {
+            $('g-area').querySelector('.cards').replaceChildren(el('div', { class: 'pcard', text: String(p.카드) }));
+          });
+        });
+        stop.disabled = play.연속 < 1;
+        stage.append(el('div', { class: 'cards' }, cards),
+          el('p', { class: 'result', id: 'g-result', text: play.연속 ? play.연속 + '번 연속! 지금 ×' + play.배수 : '다음 카드는?' }),
+          el('div', { class: 'ud-row' }, [btn('⬆️ 높다', 'primary', function () { pick('높다'); }), btn('⬇️ 낮다', 'primary', function () { pick('낮다'); }), stop]));
+      }
+    }
+  }
+  // 끝난 판의 결과 글·화면은 다시 그려도 남김 (다른 게임을 고르면 지움)
+  var _renderGame = renderGame;
+  renderGame = function () {
+    _renderGame();
+    var r = $('g-result');
+    if (r && lastResult && !play) {
+      r.textContent = lastResult.text; r.className = lastResult.cls;
+      if (lastResult.after) lastResult.after();
+    }
+  };
+  document.querySelectorAll('.gp').forEach(function (b) { b.addEventListener('click', function () { if (!play && !spinning) lastResult = null; }, true); });
+
+  function renderAll() { renderDash(); renderRecent(); renderMissions(); renderGame(); }
 
   fillForm(today());
   $('m-start').value = today();
   renderAll();
   var start = (location.hash || '').slice(1);
-  show(['dash', 'day', 'mission', 'backup'].indexOf(start) >= 0 ? start : 'dash');
+  show(['dash', 'day', 'mission', 'game', 'backup'].indexOf(start) >= 0 ? start : 'dash');
 })();
 </script>
 </body>
