@@ -9,235 +9,331 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
+/* 디자인 (a) 전체판: 알약 메뉴 + 둥근 카드 대시보드 (MultiQoS "Habit Wellness Dashboard"의 배치·분위기를 참고해 새로 만듦) */
 :root {
-  --bg: #f4f6f5; --surface: #ffffff; --fg: #16201d; --muted: #5a6a65; --line: #d9e1de;
-  --accent: #0f766e; --accent-soft: #e0f2ef; --pass: #15803d; --pass-soft: #e3f4e8;
+  --bg: #eef0f2; --surface: #ffffff; --surface-2: #f5f6f8; --fg: #121417; --muted: #66707a; --line: #e2e5e9;
+  --ink: #111315; --ink-fg: #f4f6f8; --ink-muted: #9aa3ad;
+  --accent: #0f766e; --accent-soft: #dff3ef; --lime: #c8f169; --lime-fg: #1d2a05;
+  --gold: #b7791f; --gold-soft: #fdf3dc;
+  --c1: #f59e0b; --c1-soft: #fff3dc; --c2: #22a06b; --c2-soft: #e1f5ec; --c3: #7c5cf0; --c3-soft: #eee9ff; --c4: #2f80ed; --c4-soft: #e3eefd;
   --fail: #c2410c; --fail-soft: #fdece2;
   --font-display: "Black Han Sans", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
   --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --radius: 22px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
-    --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+    --bg: #0d1012; --surface: #171b1f; --surface-2: #1e2328; --fg: #e9edf1; --muted: #98a2ad; --line: #2a3036;
+    --ink: #050607; --ink-fg: #f4f6f8; --ink-muted: #8f99a3;
+    --accent: #5eead4; --accent-soft: #163a35; --lime: #b8e45a; --lime-fg: #1d2a05;
+    --gold: #f6c453; --gold-soft: #3a2f14;
+    --c1-soft: #3a2c10; --c2-soft: #12301f; --c3-soft: #241d45; --c4-soft: #142a47;
     --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
-  --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+  --bg: #0d1012; --surface: #171b1f; --surface-2: #1e2328; --fg: #e9edf1; --muted: #98a2ad; --line: #2a3036;
+  --ink: #050607; --ink-fg: #f4f6f8; --ink-muted: #8f99a3;
+  --accent: #5eead4; --accent-soft: #163a35; --lime: #b8e45a; --lime-fg: #1d2a05;
+  --gold: #f6c453; --gold-soft: #3a2f14;
+  --c1-soft: #3a2c10; --c2-soft: #12301f; --c3-soft: #241d45; --c4-soft: #142a47;
   --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; }
-main { max-width: 960px; margin: 0 auto; padding: 28px 16px 64px; }
-h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); margin: 0 0 4px; }
-h2 { font-size: 18px; margin: 0 0 14px; }
-.sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+main { max-width: 1120px; margin: 0 auto; padding: 22px 16px 64px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hidden { display: none !important; }
 
-/* 집계 */
-.sums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
-.sum h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 500; }
-.sum .money { font-family: var(--font-mono); font-size: 26px; font-weight: 700; color: var(--accent); }
-.sum dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0 0; font-size: 13px; }
-.sum dt { color: var(--muted); }
-.sum dd { margin: 0; text-align: right; font-family: var(--font-mono); }
+/* 알약 메뉴 */
+.topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--ink-fg); padding: 9px 18px 9px 10px; border-radius: 999px; font-weight: 700; }
+.brand-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--lime); color: var(--lime-fg); display: grid; place-items: center; font-size: 15px; }
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
+.tab { white-space: nowrap; border: 0; background: var(--surface); color: var(--fg); padding: 10px 18px; border-radius: 999px; font: inherit; font-weight: 500; cursor: pointer; box-shadow: 0 1px 0 var(--line); }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 제목 */
+.greet { color: var(--muted); margin: 0 0 2px; font-size: 14px; }
+.headline { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 6vw, 46px); margin: 0; line-height: 1.1; }
+.range { background: var(--surface); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
+.range b { color: var(--fg); font-family: var(--font-mono); }
+
+/* 카드 */
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 20px; }
+.card h2 { font-size: 18px; margin: 0 0 14px; }
+.span-5 { grid-column: span 5; } .span-7 { grid-column: span 7; } .span-6 { grid-column: span 6; } .span-12 { grid-column: span 12; } .span-4 { grid-column: span 4; } .span-8 { grid-column: span 8; }
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-head h2 { margin: 0; }
+.link-btn { border: 0; background: var(--surface-2); color: var(--fg); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+
+/* 검은 돈 카드 */
+.money-card { background: var(--ink); color: var(--ink-fg); display: flex; gap: 18px; align-items: center; }
+.money-card h2 { color: var(--ink-fg); }
+.mring { position: relative; width: 132px; height: 132px; flex: none; }
+.mring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.mring .track { fill: none; stroke: #2a2e33; stroke-width: 12; }
+.mring .prog { fill: none; stroke: var(--lime); stroke-width: 12; stroke-linecap: round; }
+.mring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.mring .center b { font-family: var(--font-mono); font-size: 22px; line-height: 1.1; }
+.mring .center small { color: var(--ink-muted); font-size: 12px; }
+.money-text p { margin: 0; }
+.money-total { font-family: var(--font-mono); font-weight: 700; font-size: clamp(26px, 4vw, 34px); color: var(--lime); line-height: 1.15; }
+.money-sub { color: var(--ink-muted); font-size: 13px; margin: 4px 0 12px !important; }
+.pill-lime { display: inline-block; background: var(--lime); color: var(--lime-fg); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 13px; }
+.pill-lime b { font-family: var(--font-mono); }
+
+/* 7일 진행 막대 */
+.prog-row { display: grid; grid-template-columns: 36px 1fr minmax(0, 1.4fr) auto; gap: 12px; align-items: center; padding: 8px 0; }
+.icon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; }
+.i1 { background: var(--c1-soft); } .i2 { background: var(--c2-soft); } .i3 { background: var(--c3-soft); } .i4 { background: var(--c4-soft); }
+.track-h { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.track-h span { display: block; height: 100%; border-radius: 99px; }
+.f1 { background: var(--c1); } .f2 { background: var(--c2); } .f3 { background: var(--c3); } .f4 { background: var(--c4); }
+.prog-row .num { color: var(--muted); font-size: 14px; }
+
+/* 오늘 체크 목록 */
+.check-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface-2); border-radius: 16px; margin-bottom: 8px; width: 100%; border: 0; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; flex: none; font-size: 14px; color: var(--surface); }
+.dot.ok { background: var(--c2); border-color: var(--c2); }
+.dot.no { border-color: var(--fail); color: var(--fail); }
+.check-row .grow { flex: 1; }
+.check-row small { color: var(--muted); }
+
+/* 요일 막대 */
+.wbars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 170px; }
+.wcol { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; position: relative; }
+.wfill { width: 100%; max-width: 46px; border-radius: 14px; background: var(--surface-2); min-height: 10px; }
+.wfill.has { background: var(--accent-soft); }
+.wcol.today .wfill { background: var(--accent); }
+.tag { position: absolute; top: -4px; background: var(--ink); color: var(--ink-fg); font-family: var(--font-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.wcol span { font-size: 12px; color: var(--muted); }
+.wcol.today span { color: var(--fg); font-weight: 700; }
+
+/* 작은 숫자 목록 */
+.stat-list { display: grid; gap: 8px; }
+.stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--surface-2); border-radius: 14px; font-size: 14px; }
+.stat b { font-family: var(--font-mono); }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; color: var(--muted); padding: 5px 12px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 700; }
 
 /* 폼 */
 .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 12px; }
 label.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 label.field.grow { flex: 1 1 180px; }
 input, select, button { font: inherit; }
-input[type=number], input[type=date], input[type=text], select {
-  padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); min-width: 0;
-}
-input[type=number] { width: 96px; }
-.check { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+input[type=number], input[type=date], input[type=text], select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--fg); min-width: 0; }
+input[type=number] { width: 104px; }
+.check { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); cursor: pointer; }
 .check input { width: 18px; height: 18px; accent-color: var(--accent); }
-button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 700; }
-button.danger { color: var(--fail); }
-button.ghost { border-color: transparent; background: none; color: var(--muted); font-size: 13px; padding: 6px 8px; }
-button.ghost:hover { color: var(--fail); }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.goals { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
-.badge { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
-.badge.ok { background: var(--pass-soft); color: var(--pass); border-color: transparent; }
-.badge.no { background: var(--fail-soft); color: var(--fail); border-color: transparent; }
+.btn { padding: 10px 18px; border-radius: 999px; border: 0; background: var(--surface-2); color: var(--fg); cursor: pointer; font-weight: 500; }
+.btn.primary { background: var(--ink); color: var(--ink-fg); font-weight: 700; }
+.btn.danger { color: var(--fail); background: var(--fail-soft); }
+.btn.ghost { background: none; color: var(--muted); padding: 6px 10px; font-size: 13px; }
+.btn.ghost:hover { color: var(--fail); }
+.goals { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+.badge { font-size: 13px; padding: 5px 12px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.badge.ok { background: var(--c2-soft); color: var(--c2); }
+.badge.no { background: var(--fail-soft); color: var(--fail); }
+.badge.money { background: var(--lime); color: var(--lime-fg); font-weight: 700; }
 .msg { min-height: 1.4em; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 .msg.err { color: var(--fail); }
+.hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
 
 /* 표 */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
 th { color: var(--muted); font-weight: 500; font-size: 12px; }
 td.r, th.r { text-align: right; }
 tbody tr { cursor: pointer; }
-tbody tr:hover { background: var(--accent-soft); }
-.empty { color: var(--muted); font-size: 14px; }
+tbody tr:hover { background: var(--surface-2); }
+.empty { color: var(--muted); font-size: 14px; margin: 0; }
 
 /* 미션 */
-.mission { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.mission { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 12px 14px; background: var(--surface-2); border-radius: 16px; margin-bottom: 8px; }
 .mission .name { font-weight: 700; flex: 1 1 160px; }
 .mission .meta { font-size: 13px; color: var(--muted); }
-.bar { width: 100px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
-.bar span { display: block; height: 100%; background: var(--accent); }
-details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 12px; }
-.hidden { display: none !important; }
-.sums .card { margin-bottom: 0; }
+.mbar { width: 110px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.mbar span { display: block; height: 100%; background: var(--c3); }
+details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
 
-/* 디자인 (a): 모은 돈 카드 + 이번 주 카드 */
-:root { --gold: #b7791f; --gold-soft: #fdf3dc; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --gold: #f6c453; --gold-soft: #3a2f14; } }
-:root[data-theme="dark"] { --gold: #f6c453; --gold-soft: #3a2f14; }
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 12px; margin-bottom: 12px; }
-.hero .card { margin-bottom: 0; }
-.bank { background: linear-gradient(160deg, var(--gold-soft), var(--surface) 70%); display: flex; flex-direction: column; gap: 14px; }
-.bank-top { display: flex; align-items: center; gap: 14px; }
-.jar { width: 64px; height: 64px; flex: none; }
-.jar-lid { fill: var(--gold); }
-.jar-body { fill: none; stroke: var(--gold); stroke-width: 3; }
-.coin { fill: var(--gold); opacity: .85; }
-.bank-label { margin: 0; color: var(--muted); font-size: 14px; }
-.bank-total { margin: 0; font-family: var(--font-mono); font-weight: 700; font-size: clamp(30px, 6vw, 42px); color: var(--gold); line-height: 1.15; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { font-size: 13px; padding: 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
-.chip b { font-family: var(--font-mono); }
-.bank-note { margin: auto 0 0; font-size: 12px; color: var(--muted); }
-.week h2 { margin-bottom: 10px; }
-.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 120px; margin-bottom: 14px; }
-.bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
-.bar-fill { width: 100%; max-width: 34px; border-radius: 6px 6px 3px 3px; background: var(--accent-soft); min-height: 4px; }
-.bar-fill.has { background: var(--accent); }
-.bar-col.today .bar-fill { outline: 2px solid var(--gold); outline-offset: 2px; }
-.bar-col span { font-size: 12px; color: var(--muted); }
-.bar-col.today span { color: var(--fg); font-weight: 700; }
-.rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.ring { display: flex; align-items: center; gap: 10px; }
-.ring svg { width: 52px; height: 52px; flex: none; transform: rotate(-90deg); }
-.ring .track { fill: none; stroke: var(--line); stroke-width: 6; }
-.ring .prog { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
-.ring b { display: block; font-family: var(--font-mono); font-size: 15px; }
-.ring small { color: var(--muted); font-size: 12px; line-height: 1.3; display: block; }
-.sum .money { font-size: 20px; }
-
-@media (max-width: 640px) {
-  .sums { grid-template-columns: 1fr; }
-  .hero { grid-template-columns: 1fr; }
-  .rings { grid-template-columns: 1fr; }
+@media (max-width: 860px) {
+  .span-5, .span-7, .span-6, .span-4, .span-8 { grid-column: span 12; }
+}
+@media (max-width: 520px) {
+  .money-card { flex-direction: column; align-items: flex-start; }
+  .prog-row { grid-template-columns: 36px 1fr auto; }
+  .prog-row .track-h { grid-column: 1 / -1; }
+  .wbars { height: 140px; gap: 6px; }
 }
 </style>
 </head>
 <body>
 <main>
-  <h1>챌린지보드</h1>
-  <p class="sub">매일 목표를 달성하면 돈이 쌓여요. 기록은 <b>이 브라우저에만</b> 저장돼요.</p>
+  <nav class="topbar" aria-label="메뉴">
+    <span class="brand"><span class="brand-dot" aria-hidden="true">✦</span>챌린지보드</span>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="dash" aria-selected="true">대시보드</button>
+      <button class="tab" role="tab" data-view="day" aria-selected="false">하루 기록</button>
+      <button class="tab" role="tab" data-view="mission" aria-selected="false">미션</button>
+      <button class="tab" role="tab" data-view="backup" aria-selected="false">백업</button>
+    </div>
+  </nav>
+
   <p class="msg err hidden" id="storage-warn">이 브라우저에서는 저장이 안 돼요. 페이지를 닫으면 기록이 사라져요.</p>
 
-  <section class="hero" aria-label="모은 돈과 이번 주">
-    <div class="card bank">
-      <div class="bank-top">
-        <svg class="jar" viewBox="0 0 64 64" aria-hidden="true">
-          <rect x="14" y="10" width="36" height="8" rx="3" class="jar-lid"/>
-          <path d="M16 20h32c3 0 5 2 5 5v25c0 5-4 9-9 9H20c-5 0-9-4-9-9V25c0-3 2-5 5-5z" class="jar-body"/>
-          <circle cx="26" cy="46" r="7" class="coin"/><circle cx="38" cy="40" r="7" class="coin"/><circle cx="32" cy="30" r="7" class="coin"/>
-        </svg>
-        <div>
-          <p class="bank-label">모은 돈 (전체)</p>
-          <p class="bank-total" id="bank-total">0원</p>
+  <!-- ── 대시보드 ── -->
+  <section data-panel="dash">
+    <p class="greet" id="greet">오늘도 한 걸음</p>
+    <div class="headline">
+      <h1>나의 취업 챌린지</h1>
+      <span class="range">📅 이번 주 <b id="range">-</b></span>
+    </div>
+    <div class="grid">
+      <article class="card money-card span-5">
+        <div class="mring" aria-hidden="true">
+          <svg viewBox="0 0 132 132"><circle class="track" cx="66" cy="66" r="54"/><circle class="prog" id="mring-prog" cx="66" cy="66" r="54"/></svg>
+          <div class="center"><b id="mring-pct">0%</b><small>이번 주</small></div>
         </div>
-      </div>
-      <div class="chips">
-        <span class="chip" id="bank-week">이번 주 +0원</span>
-        <span class="chip" id="bank-month">이번 달 0원</span>
-      </div>
-      <p class="bank-note">목표 달성: 영양제 1,000원 · 운동 2,000원 · 공부 3,000원 / 미션: 쉬움 1,000 · 보통 3,000 · 어려움 5,000원</p>
+        <div class="money-text">
+          <h2>모은 돈</h2>
+          <p class="money-total" id="money-total">0원</p>
+          <p class="money-sub" id="money-sub">이번 주 최대 42,000원 중 0원</p>
+          <span class="pill-lime" id="money-month">이번 달 <b>0원</b></span>
+        </div>
+      </article>
+
+      <article class="card span-7">
+        <div class="card-head"><h2>7일 진행</h2><button class="link-btn" data-go="day" aria-label="하루 기록으로">↗</button></div>
+        <div id="week-progress"></div>
+      </article>
+
+      <article class="card span-5">
+        <div class="card-head"><h2 id="today-title">오늘 목표</h2><button class="link-btn" data-go="day" aria-label="하루 기록으로">↗</button></div>
+        <div id="today-list"></div>
+      </article>
+
+      <article class="card span-7">
+        <div class="card-head"><h2>이번 주 모은 돈</h2></div>
+        <div class="wbars" id="week-bars" role="img" aria-label="이번 주 날짜별 모은 돈"></div>
+      </article>
+
+      <article class="card span-6">
+        <div class="card-head"><h2>진행 중인 미션</h2><button class="link-btn" data-go="mission" aria-label="미션으로">↗</button></div>
+        <div id="dash-missions"></div>
+      </article>
+
+      <article class="card span-6">
+        <div class="card-head">
+          <h2>누적 기록</h2>
+          <div class="seg" role="group" aria-label="기간">
+            <button type="button" data-range="이번주" aria-pressed="false">이번 주</button>
+            <button type="button" data-range="이번달" aria-pressed="true">이번 달</button>
+            <button type="button" data-range="전체" aria-pressed="false">전체</button>
+          </div>
+        </div>
+        <div class="stat-list" id="stats"></div>
+      </article>
     </div>
-    <div class="card week">
-      <h2>이번 주</h2>
-      <div class="bars" id="week-bars" role="img" aria-label="이번 주 날짜별 모은 돈"></div>
-      <div class="rings" id="week-rings"></div>
+  </section>
+
+  <!-- ── 하루 기록 ── -->
+  <section data-panel="day" class="hidden">
+    <div class="headline"><h1>하루 기록</h1></div>
+    <div class="grid">
+      <article class="card span-12">
+        <form id="day-form">
+          <div class="row">
+            <label class="field">날짜 <input type="date" id="f-date" required></label>
+            <label class="check"><input type="checkbox" id="f-am"> 💊 영양제 아침</label>
+            <label class="check"><input type="checkbox" id="f-pm"> 💊 영양제 저녁</label>
+          </div>
+          <div class="row">
+            <label class="field">🏃 운동(분) <input type="number" id="f-ex" min="0" step="1" inputmode="numeric"></label>
+            <label class="field grow">운동 내용 <input type="text" id="f-ex-note" placeholder="산책, 헬스…"></label>
+          </div>
+          <div class="row">
+            <label class="field">💻 코드·AI 공부(분) <input type="number" id="f-st" min="0" step="1" inputmode="numeric"></label>
+            <label class="field grow">공부 내용 <input type="text" id="f-st-note" placeholder="파이썬 반복문…"></label>
+          </div>
+          <div class="row">
+            <label class="field">📮 지원 건수 <input type="number" id="f-apply" min="0" step="1" inputmode="numeric"></label>
+          </div>
+          <div class="goals" id="day-goals" aria-live="polite"></div>
+          <div class="row">
+            <button type="submit" class="btn primary">저장</button>
+            <button type="button" class="btn danger" id="day-clear">이 날 기록 지우기</button>
+          </div>
+          <p class="msg" id="day-msg" aria-live="polite"></p>
+        </form>
+      </article>
+      <article class="card span-12">
+        <h2>최근 기록</h2>
+        <p class="hint">줄을 누르면 그날 기록을 고칠 수 있어요.</p>
+        <div class="table-wrap" id="recent"></div>
+      </article>
     </div>
   </section>
 
-  <section class="sums" id="sums" aria-label="집계"></section>
-
-  <section class="card" aria-labelledby="day-title">
-    <h2 id="day-title">하루 기록</h2>
-    <form id="day-form">
-      <div class="row">
-        <label class="field">날짜 <input type="date" id="f-date" required></label>
-        <label class="check"><input type="checkbox" id="f-am"> 💊 영양제 아침</label>
-        <label class="check"><input type="checkbox" id="f-pm"> 💊 영양제 저녁</label>
-      </div>
-      <div class="row">
-        <label class="field">🏃 운동(분) <input type="number" id="f-ex" min="0" step="1" inputmode="numeric"></label>
-        <label class="field grow">운동 내용 <input type="text" id="f-ex-note" placeholder="산책, 헬스…"></label>
-      </div>
-      <div class="row">
-        <label class="field">💻 코드·AI 공부(분) <input type="number" id="f-st" min="0" step="1" inputmode="numeric"></label>
-        <label class="field grow">공부 내용 <input type="text" id="f-st-note" placeholder="파이썬 반복문…"></label>
-      </div>
-      <div class="row">
-        <label class="field">📮 지원 건수 <input type="number" id="f-apply" min="0" step="1" inputmode="numeric"></label>
-      </div>
-      <div class="goals" id="day-goals" aria-live="polite"></div>
-      <div class="row">
-        <button type="submit" class="primary">저장</button>
-        <button type="button" class="danger" id="day-clear">이 날 기록 지우기</button>
-      </div>
-      <p class="msg" id="day-msg" aria-live="polite"></p>
-    </form>
-  </section>
-
-  <section class="card" aria-labelledby="recent-title">
-    <h2 id="recent-title">최근 기록</h2>
-    <div class="table-wrap" id="recent"></div>
-  </section>
-
-  <section class="card" aria-labelledby="mission-title">
-    <h2 id="mission-title">미션</h2>
-    <form id="mission-form">
-      <div class="row">
-        <label class="field grow">미션 이름 <input type="text" id="m-name" placeholder="모의면접 3번" required></label>
-        <label class="field">종류
-          <select id="m-type"><option value="완료형">완료형</option><option value="횟수형">횟수형</option></select>
-        </label>
-        <label class="field hidden" id="m-target-wrap">목표 횟수 <input type="number" id="m-target" min="1" step="1" inputmode="numeric"></label>
-      </div>
-      <div class="row">
-        <label class="field">시작일 <input type="date" id="m-start" required></label>
-        <label class="field">마감일 <input type="date" id="m-end"></label>
-        <label class="field">난이도
-          <select id="m-level">
-            <option value="쉬움">쉬움 · 1,000원</option>
-            <option value="보통" selected>보통 · 3,000원</option>
-            <option value="어려움">어려움 · 5,000원</option>
-          </select>
-        </label>
-        <button type="submit" class="primary">미션 추가</button>
-      </div>
-      <p class="msg" id="mission-msg" aria-live="polite"></p>
-    </form>
-    <p class="msg" id="mission-date-hint"></p>
-    <div id="missions-active"></div>
-    <details id="missions-done-wrap"><summary>끝난 미션</summary><div id="missions-done"></div></details>
-  </section>
-
-  <section class="card" aria-labelledby="backup-title">
-    <h2 id="backup-title">백업</h2>
-    <p class="sub" style="margin-bottom:12px">기록을 파일(.json)로 저장해 두거나, 다른 기기·브라우저에서 불러와요. <b>불러오면 지금 기록은 파일 내용으로 통째로 바뀌어요.</b></p>
-    <div class="row">
-      <button type="button" id="export-btn">내보내기 (파일 저장)</button>
-      <label class="check" for="import-file">불러오기 (파일 고르기)</label>
-      <input type="file" id="import-file" accept=".json,application/json" class="hidden">
+  <!-- ── 미션 ── -->
+  <section data-panel="mission" class="hidden">
+    <div class="headline"><h1>미션</h1></div>
+    <div class="grid">
+      <article class="card span-12">
+        <h2>미션 추가</h2>
+        <form id="mission-form">
+          <div class="row">
+            <label class="field grow">미션 이름 <input type="text" id="m-name" placeholder="모의면접 3번" required></label>
+            <label class="field">종류
+              <select id="m-type"><option value="완료형">완료형</option><option value="횟수형">횟수형</option></select>
+            </label>
+            <label class="field hidden" id="m-target-wrap">목표 횟수 <input type="number" id="m-target" min="1" step="1" inputmode="numeric"></label>
+          </div>
+          <div class="row">
+            <label class="field">시작일 <input type="date" id="m-start" required></label>
+            <label class="field">마감일 <input type="date" id="m-end"></label>
+            <label class="field">난이도
+              <select id="m-level">
+                <option value="쉬움">쉬움 · 1,000원</option>
+                <option value="보통" selected>보통 · 3,000원</option>
+                <option value="어려움">어려움 · 5,000원</option>
+              </select>
+            </label>
+            <button type="submit" class="btn primary">미션 추가</button>
+          </div>
+          <p class="msg" id="mission-msg" aria-live="polite"></p>
+        </form>
+      </article>
+      <article class="card span-12">
+        <h2>진행 중</h2>
+        <p class="hint" id="mission-date-hint"></p>
+        <div id="missions-active"></div>
+        <details id="missions-done-wrap"><summary>끝난 미션</summary><div id="missions-done"></div></details>
+      </article>
     </div>
-    <p class="msg" id="backup-msg" aria-live="polite"></p>
+  </section>
+
+  <!-- ── 백업 ── -->
+  <section data-panel="backup" class="hidden">
+    <div class="headline"><h1>백업</h1></div>
+    <div class="grid">
+      <article class="card span-12">
+        <p class="hint">기록은 <b>이 브라우저에만</b> 저장돼요. 파일(.json)로 내보내 두거나, 다른 기기·브라우저에서 불러와요. <b>불러오면 지금 기록은 파일 내용으로 통째로 바뀌어요.</b></p>
+        <div class="row">
+          <button type="button" class="btn primary" id="export-btn">내보내기 (파일 저장)</button>
+          <label class="btn" for="import-file">불러오기 (파일 고르기)</label>
+          <input type="file" id="import-file" accept=".json,application/json" class="hidden">
+        </div>
+        <p class="msg" id="backup-msg" aria-live="polite"></p>
+      </article>
+    </div>
   </section>
 </main>
 
@@ -248,6 +344,9 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
   var KEY = 'challenge-board.v1';
   var won = function (n) { return n.toLocaleString('ko-KR') + '원'; };
   var $ = function (id) { return document.getElementById(id); };
+  var DOW = ['월', '화', '수', '목', '금', '토', '일'];
+  var ICON = { 영양제: ['💊', 1], 운동: ['🏃', 2], 공부: ['💻', 3] };
+  var WEEK_MAX = L.GOALS.reduce(function (s, g) { return s + g.money; }, 0) * 7; // 매일 목표를 다 달성하면 받는 돈
 
   // ── 브라우저 저장 (실패해도 페이지는 동작) ──
   var canSave = true;
@@ -260,8 +359,6 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     catch (e) { canSave = false; }
     $('storage-warn').classList.toggle('hidden', canSave);
   }
-
-  // 오늘 날짜 (이 기기의 시간 기준)
   function today() {
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -281,27 +378,115 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     return e;
   }
   function setMsg(id, text, err) { var m = $(id); m.textContent = text; m.classList.toggle('err', !!err); }
+  function md(d) { return Number(d.slice(5, 7)) + '/' + Number(d.slice(8, 10)); }
 
-  // ── 집계 ──
-  function renderSums() {
-    var s = L.summarize(state, today());
-    var box = $('sums');
+  // ── 메뉴(탭) ──
+  function show(view) {
+    document.querySelectorAll('.tab').forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.view === view)); });
+    document.querySelectorAll('[data-panel]').forEach(function (p) { p.classList.toggle('hidden', p.dataset.panel !== view); });
+    try { history.replaceState(null, '', '#' + view); } catch (e) {}
+  }
+  document.querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.view); }); });
+  document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.go); window.scrollTo(0, 0); }); });
+
+  // ── 대시보드 ──
+  var statRange = '이번달';
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      statRange = b.dataset.range;
+      document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      renderStats();
+    });
+  });
+
+  function renderStats() {
+    var v = L.summarize(state, today())[statRange];
+    var box = $('stats');
     box.replaceChildren();
-    [['이번 주', s.이번주], ['이번 달', s.이번달], ['전체 누적', s.전체]].forEach(function (p) {
-      var v = p[1];
-      box.appendChild(el('div', { class: 'card sum' }, [
-        el('h3', { text: p[0] }),
-        el('div', { class: 'money', text: won(v.돈) }),
-        el('dl', {}, [
-          el('dt', { text: '🏃 운동' }), el('dd', { text: v.운동_분 + '분' }),
-          el('dt', { text: '💻 공부' }), el('dd', { text: v.공부_분 + '분' }),
-          el('dt', { text: '📮 지원' }), el('dd', { text: v.지원_건수 + '건' }),
-        ]),
-      ]));
+    [['💰 모은 돈', won(v.돈)], ['🏃 운동', v.운동_분 + '분'], ['💻 코드·AI 공부', v.공부_분 + '분'], ['📮 지원', v.지원_건수 + '건']].forEach(function (r) {
+      box.appendChild(el('div', { class: 'stat' }, [el('span', { text: r[0] }), el('b', { text: r[1] })]));
     });
   }
 
-  // ── 하루 기록 폼 ──
+  function renderDash() {
+    var t = today();
+    var s = L.summarize(state, t);
+    var w = L.weekStats(state, t);
+    $('greet').textContent = '오늘은 ' + md(t) + ' (' + DOW[(new Date(t + 'T00:00:00Z').getUTCDay() + 6) % 7] + ') · 오늘도 한 걸음';
+    $('range').textContent = md(w.days[0].date) + ' - ' + md(w.days[6].date);
+
+    // 검은 돈 카드
+    var pct = Math.min(100, Math.round(s.이번주.돈 / WEEK_MAX * 100));
+    var C = 2 * Math.PI * 54;
+    $('mring-prog').setAttribute('stroke-dasharray', C);
+    $('mring-prog').setAttribute('stroke-dashoffset', C * (1 - pct / 100));
+    $('mring-pct').textContent = pct + '%';
+    $('money-total').textContent = won(s.전체.돈);
+    $('money-sub').textContent = '이번 주 ' + won(s.이번주.돈) + ' (매일 목표 최대 ' + won(WEEK_MAX) + ')';
+    $('money-month').replaceChildren(document.createTextNode('이번 달 '), el('b', { text: won(s.이번달.돈) }));
+
+    // 7일 진행 막대
+    var prog = $('week-progress');
+    prog.replaceChildren();
+    L.GOALS.forEach(function (g) {
+      var n = w.목표별_달성일[g.key], ic = ICON[g.key];
+      var fill = el('span', { class: 'f' + ic[1] });
+      fill.style.width = Math.round(n / 7 * 100) + '%';
+      prog.appendChild(el('div', { class: 'prog-row' }, [
+        el('span', { class: 'icon i' + ic[1], 'aria-hidden': 'true', text: ic[0] }),
+        el('span', { text: g.label }),
+        el('div', { class: 'track-h', role: 'img', 'aria-label': g.label + ' 이번 주 ' + n + '일 달성' }, [fill]),
+        el('span', { class: 'num', text: n + '/7' }),
+      ]));
+    });
+    prog.appendChild(el('div', { class: 'prog-row' }, [
+      el('span', { class: 'icon i4', 'aria-hidden': 'true', text: '📮' }),
+      el('span', { text: '지원 (기록만)' }),
+      el('span'),
+      el('span', { class: 'num', text: s.이번주.지원_건수 + '건' }),
+    ]));
+
+    // 오늘 목표 체크
+    var rec = state.days[t] || {};
+    var j = L.judgeDay(rec);
+    $('today-title').textContent = '오늘 목표 · ' + won(L.dayMoney(rec));
+    var list = $('today-list');
+    list.replaceChildren();
+    L.GOALS.forEach(function (g) {
+      var v = j[g.key];
+      var row = el('button', { class: 'check-row', type: 'button' }, [
+        el('span', { class: 'dot' + (v === true ? ' ok' : v === false ? ' no' : ''), 'aria-hidden': 'true', text: v === true ? '✓' : v === false ? '✗' : '' }),
+        el('span', { class: 'grow', text: ICON[g.key][0] + ' ' + g.label }),
+        el('small', { text: v === true ? '+' + won(g.money) : v === false ? '아직' : '기록 없음' }),
+      ]);
+      row.addEventListener('click', function () { fillForm(t); show('day'); window.scrollTo(0, 0); });
+      list.appendChild(row);
+    });
+
+    // 요일 막대
+    var max = Math.max(1, Math.max.apply(null, w.days.map(function (d) { return d.돈; })));
+    var bars = $('week-bars');
+    bars.replaceChildren();
+    w.days.forEach(function (d, i) {
+      var fill = el('div', { class: 'wfill' + (d.돈 ? ' has' : ''), title: d.date + ' · ' + won(d.돈) });
+      fill.style.height = Math.max(8, Math.round(d.돈 / max * 82)) + '%';
+      var kids = [fill, el('span', { text: DOW[i] })];
+      if (d.date === t) kids.unshift(el('span', { class: 'tag', text: won(d.돈) }));
+      bars.appendChild(el('div', { class: 'wcol' + (d.date === t ? ' today' : '') }, kids));
+    });
+    bars.setAttribute('aria-label', '이번 주 날짜별 모은 돈: ' + w.days.map(function (d, i) { return DOW[i] + ' ' + won(d.돈); }).join(', '));
+
+    // 진행 중인 미션 (마감 가까운 3개)
+    var dm = $('dash-missions');
+    dm.replaceChildren();
+    var active = activeMissions().slice(0, 3);
+    if (!active.length) dm.appendChild(el('p', { class: 'empty', text: '진행 중인 미션이 없어요. "미션" 메뉴에서 추가해요.' }));
+    active.forEach(function (m) { dm.appendChild(missionRow(m, true)); });
+
+    renderStats();
+  }
+
+  // ── 하루 기록 ──
   function readForm() {
     return {
       영양제_아침: $('f-am').checked ? true : '',
@@ -333,13 +518,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
       var mark = v === true ? '✓ ' : v === false ? '✗ ' : '○ ';
       box.appendChild(el('span', { class: 'badge' + (v === true ? ' ok' : v === false ? ' no' : ''), text: mark + g.label + ' +' + won(g.money) }));
     });
-    box.appendChild(el('span', { class: 'badge', text: '이 날 ' + won(L.dayMoney(rec)) }));
+    box.appendChild(el('span', { class: 'badge money', text: '이 날 ' + won(L.dayMoney(rec)) }));
   }
 
-  $('day-form').addEventListener('input', function (e) {
-    if (e.target.id === 'f-date') return;
-    renderGoals();
-  });
+  $('day-form').addEventListener('input', function (e) { if (e.target.id !== 'f-date') renderGoals(); });
   $('f-date').addEventListener('change', function () {
     if (L.isDate($('f-date').value)) { fillForm($('f-date').value); setMsg('day-msg', ''); renderMissions(); }
   });
@@ -364,7 +546,6 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     renderAll();
   });
 
-  // ── 최근 기록 표 (14일) ──
   function renderRecent() {
     var box = $('recent');
     box.replaceChildren();
@@ -385,7 +566,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
         el('td', { class: 'r num', text: r.지원_건수 != null ? r.지원_건수 + '건' : '-' }),
         el('td', { class: 'r num', text: won(L.dayMoney(r)) }),
       ]);
-      tr.addEventListener('click', function () { fillForm(d); $('day-title').scrollIntoView({ behavior: 'smooth' }); });
+      tr.addEventListener('click', function () { fillForm(d); renderMissions(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
       body.appendChild(tr);
     });
     box.appendChild(el('table', {}, [el('thead', {}, [head]), body]));
@@ -413,60 +594,62 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     try { state = fn(); save(state); setMsg('mission-msg', okText); renderAll(); }
     catch (err) { setMsg('mission-msg', err.message, true); }
   }
-
-  // 미션 진행 날짜 = 하루 기록에서 고른 날짜 (보완 1, R17과 같은 규칙)
-  function pickedDate() {
-    var d = $('f-date').value;
-    return L.isDate(d) ? d : today();
-  }
-
+  // 미션 진행 날짜 = 하루 기록에서 고른 날짜 (R17과 같은 규칙)
+  function pickedDate() { var d = $('f-date').value; return L.isDate(d) ? d : today(); }
   function dday(end) {
     if (!end) return '마감 없음';
     var diff = Math.round((new Date(end + 'T00:00:00Z') - new Date(today() + 'T00:00:00Z')) / 86400000);
-    return diff === 0 ? '오늘 마감' : diff > 0 ? '마감 D-' + diff : '마감 ' + (-diff) + '일 지남';
+    return diff === 0 ? '오늘 마감' : diff > 0 ? 'D-' + diff : (-diff) + '일 지남';
+  }
+  function activeMissions() {
+    return state.missions.filter(function (m) { return m.상태 === '진행 중'; })
+      .sort(function (a, b) { return (a.마감일 || '9999') < (b.마감일 || '9999') ? -1 : 1; });
   }
 
-  function missionRow(m) {
+  function missionRow(m, compact) {
     var parts = [el('span', { class: 'name', text: m.이름 })];
     if (m.종류 === '횟수형') {
-      var pct = Math.min(100, Math.round(m.현재_횟수 / m.목표_횟수 * 100));
-      parts.push(el('span', { class: 'bar', 'aria-hidden': 'true' }, [(function () { var s = el('span'); s.style.width = pct + '%'; return s; })()]));
-      parts.push(el('span', { class: 'num', text: m.현재_횟수 + ' / ' + m.목표_횟수 }));
+      var bar = el('span', { class: 'mbar', 'aria-hidden': 'true' }, [el('span')]);
+      bar.firstChild.style.width = Math.min(100, Math.round(m.현재_횟수 / m.목표_횟수 * 100)) + '%';
+      parts.push(bar, el('span', { class: 'num', text: m.현재_횟수 + '/' + m.목표_횟수 }));
     } else {
       parts.push(el('span', { class: 'meta', text: '완료형' }));
     }
-    parts.push(el('span', { class: 'meta num', text: (m.난이도 ? m.난이도 + ' · ' : '') + '💰 ' + won(m.금액) }));
+    parts.push(el('span', { class: 'meta', text: (m.난이도 ? m.난이도 + ' · ' : '') + won(m.금액) }));
     if (m.상태 === '진행 중') {
       parts.push(el('span', { class: 'meta', text: dday(m.마감일) }));
-      var main = el('button', { class: 'primary', type: 'button', text: m.종류 === '횟수형' ? '+1' : '완료' });
-      main.addEventListener('click', function () {
-        var d = pickedDate();
-        act(function () {
-          return L.progressMission(state, m.id, m.종류 === '횟수형' ? { date: d, n: 1 } : { date: d, done: true });
-        }, m.이름 + ' 진행을 ' + d + ' 날짜로 기록했어요.');
-      });
-      var quit = el('button', { class: 'danger', type: 'button', text: '포기' });
-      quit.addEventListener('click', function () {
-        var d = pickedDate();
-        if (!confirm('"' + m.이름 + '" 미션을 ' + d + ' 날짜로 포기할까요? 돈은 쌓이지 않아요.')) return;
-        act(function () { return L.giveUpMission(state, m.id, d); }, m.이름 + ' 미션을 포기했어요.');
-      });
-      parts.push(main, quit);
+      if (!compact) {
+        var main = el('button', { class: 'btn primary', type: 'button', text: m.종류 === '횟수형' ? '+1' : '완료' });
+        main.addEventListener('click', function () {
+          var d = pickedDate();
+          act(function () {
+            return L.progressMission(state, m.id, m.종류 === '횟수형' ? { date: d, n: 1 } : { date: d, done: true });
+          }, m.이름 + ' 진행을 ' + d + ' 날짜로 기록했어요.');
+        });
+        var quit = el('button', { class: 'btn danger', type: 'button', text: '포기' });
+        quit.addEventListener('click', function () {
+          var d = pickedDate();
+          if (!confirm('"' + m.이름 + '" 미션을 ' + d + ' 날짜로 포기할까요? 돈은 쌓이지 않아요.')) return;
+          act(function () { return L.giveUpMission(state, m.id, d); }, m.이름 + ' 미션을 포기했어요.');
+        });
+        parts.push(main, quit);
+      }
     } else {
       parts.push(el('span', { class: 'meta', text: (m.상태 === '완료' ? '🎉 완료 ' : '포기 ') + m.완료일 }));
     }
-    var del = el('button', { class: 'ghost', type: 'button', text: '삭제', 'aria-label': m.이름 + ' 미션 삭제' });
-    del.addEventListener('click', function () {
-      if (!confirm('"' + m.이름 + '" 미션을 삭제할까요? 기록과 돈이 모두 사라지고 되돌릴 수 없어요.')) return;
-      act(function () { return L.deleteMission(state, m.id); }, m.이름 + ' 미션을 삭제했어요.');
-    });
-    parts.push(del);
+    if (!compact) {
+      var del = el('button', { class: 'btn ghost', type: 'button', text: '삭제', 'aria-label': m.이름 + ' 미션 삭제' });
+      del.addEventListener('click', function () {
+        if (!confirm('"' + m.이름 + '" 미션을 삭제할까요? 기록과 돈이 모두 사라지고 되돌릴 수 없어요.')) return;
+        act(function () { return L.deleteMission(state, m.id); }, m.이름 + ' 미션을 삭제했어요.');
+      });
+      parts.push(del);
+    }
     return el('div', { class: 'mission' }, parts);
   }
 
   function renderMissions() {
-    var active = state.missions.filter(function (m) { return m.상태 === '진행 중'; })
-      .sort(function (a, b) { return (a.마감일 || '9999') < (b.마감일 || '9999') ? -1 : 1; });
+    var active = activeMissions();
     var done = state.missions.filter(function (m) { return m.상태 !== '진행 중'; })
       .sort(function (a, b) { return a.완료일 < b.완료일 ? 1 : -1; });
     var a = $('missions-active'), d = $('missions-done');
@@ -475,10 +658,10 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     active.forEach(function (m) { a.appendChild(missionRow(m)); });
     done.forEach(function (m) { d.appendChild(missionRow(m)); });
     $('missions-done-wrap').classList.toggle('hidden', !done.length);
-    $('mission-date-hint').textContent = active.length ? '+1·완료·포기는 위 "하루 기록"에서 고른 날짜(' + pickedDate() + ')로 기록돼요.' : '';
+    $('mission-date-hint').textContent = active.length ? '+1·완료·포기는 "하루 기록"에서 고른 날짜(' + pickedDate() + ')로 기록돼요.' : '';
   }
 
-  // ── 백업: 내보내기·불러오기 (보완 4) ──
+  // ── 백업 ──
   $('export-btn').addEventListener('click', function () {
     var blob = new Blob([L.exportState(state)], { type: 'application/json' });
     var a = el('a', { href: URL.createObjectURL(blob), download: 'challenge-board_' + today() + '.json' });
@@ -503,54 +686,13 @@ details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-
     }).catch(function (err) { setMsg('backup-msg', err.message, true); });
   });
 
-  // ── 디자인 (a): 모은 돈 카드, 이번 주 7일 막대, 목표 링 ──
-  var DOW = ['월', '화', '수', '목', '금', '토', '일'];
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  function svg(tag, attrs) {
-    var e = document.createElementNS(SVGNS, tag);
-    Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
-    return e;
-  }
-
-  function renderHero() {
-    var t = today();
-    var s = L.summarize(state, t);
-    $('bank-total').textContent = won(s.전체.돈);
-    $('bank-week').replaceChildren(document.createTextNode('이번 주 '), el('b', { text: '+' + won(s.이번주.돈) }));
-    $('bank-month').replaceChildren(document.createTextNode('이번 달 '), el('b', { text: won(s.이번달.돈) }));
-
-    var w = L.weekStats(state, t);
-    var max = Math.max(6000, Math.max.apply(null, w.days.map(function (d) { return d.돈; })));
-    var bars = $('week-bars');
-    bars.replaceChildren();
-    w.days.forEach(function (d, i) {
-      var fill = el('div', { class: 'bar-fill' + (d.돈 ? ' has' : ''), title: d.date + ' · ' + won(d.돈) });
-      fill.style.height = Math.max(4, Math.round(d.돈 / max * 100)) + '%';
-      bars.appendChild(el('div', { class: 'bar-col' + (d.date === t ? ' today' : '') }, [fill, el('span', { text: DOW[i] })]));
-    });
-    bars.setAttribute('aria-label', '이번 주 날짜별 모은 돈: ' + w.days.map(function (d, i) { return DOW[i] + ' ' + won(d.돈); }).join(', '));
-
-    var rings = $('week-rings');
-    rings.replaceChildren();
-    var C = 2 * Math.PI * 22;
-    L.GOALS.forEach(function (g) {
-      var n = w.목표별_달성일[g.key];
-      var ring = svg('svg', { viewBox: '0 0 52 52', 'aria-hidden': 'true' });
-      ring.appendChild(svg('circle', { cx: 26, cy: 26, r: 22, class: 'track' }));
-      ring.appendChild(svg('circle', { cx: 26, cy: 26, r: 22, class: 'prog', 'stroke-dasharray': C, 'stroke-dashoffset': C * (1 - n / 7) }));
-      rings.appendChild(el('div', { class: 'ring' }, [ring, el('div', {}, [
-        el('b', { text: n + ' / 7일' }),
-        el('small', { text: g.label }),
-        el('small', { text: '+' + won(g.money) + ' / 일' }),
-      ])]));
-    });
-  }
-
-  function renderAll() { renderHero(); renderSums(); renderRecent(); renderMissions(); }
+  function renderAll() { renderDash(); renderRecent(); renderMissions(); }
 
   fillForm(today());
   $('m-start').value = today();
   renderAll();
+  var start = (location.hash || '').slice(1);
+  show(['dash', 'day', 'mission', 'backup'].indexOf(start) >= 0 ? start : 'dash');
 })();
 </script>
 </body>
