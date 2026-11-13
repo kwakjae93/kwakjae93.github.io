@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>챌린지보드</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --fg: #16201d; --muted: #5a6a65; --line: #d9e1de;
+  --accent: #0f766e; --accent-soft: #e0f2ef; --pass: #15803d; --pass-soft: #e3f4e8;
+  --fail: #c2410c; --fail-soft: #fdece2;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+    --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+    --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1513; --surface: #17201d; --fg: #e6eeeb; --muted: #94a6a0; --line: #2a3632;
+  --accent: #5eead4; --accent-soft: #163a35; --pass: #6ee7a0; --pass-soft: #173324;
+  --fail: #ffa070; --fail-soft: #3a2218; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.55; }
+main { max-width: 960px; margin: 0 auto; padding: 28px 16px 64px; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 0 0 14px; }
+.sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* 집계 */
+.sums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.sum h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 500; }
+.sum .money { font-family: var(--font-mono); font-size: 26px; font-weight: 700; color: var(--accent); }
+.sum dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0 0; font-size: 13px; }
+.sum dt { color: var(--muted); }
+.sum dd { margin: 0; text-align: right; font-family: var(--font-mono); }
+
+/* 폼 */
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 12px; }
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+label.field.grow { flex: 1 1 180px; }
+input, select, button { font: inherit; }
+input[type=number], input[type=date], input[type=text], select {
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); min-width: 0;
+}
+input[type=number] { width: 96px; }
+.check { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 700; }
+button.danger { color: var(--fail); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.goals { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+.badge { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.badge.ok { background: var(--pass-soft); color: var(--pass); border-color: transparent; }
+.badge.no { background: var(--fail-soft); color: var(--fail); border-color: transparent; }
+.msg { min-height: 1.4em; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.msg.err { color: var(--fail); }
+
+/* 표 */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+td.r, th.r { text-align: right; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--accent-soft); }
+.empty { color: var(--muted); font-size: 14px; }
+
+/* 미션 */
+.mission { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.mission .name { font-weight: 700; flex: 1 1 160px; }
+.mission .meta { font-size: 13px; color: var(--muted); }
+.bar { width: 100px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); }
+details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 12px; }
+.hidden { display: none !important; }
+.sums .card { margin-bottom: 0; }
+
+@media (max-width: 640px) {
+  .sums { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>챌린지보드</h1>
+  <p class="sub">매일 목표를 달성하면 돈이 쌓여요. 기록은 <b>이 브라우저에만</b> 저장돼요.</p>
+  <p class="msg err hidden" id="storage-warn">이 브라우저에서는 저장이 안 돼요. 페이지를 닫으면 기록이 사라져요.</p>
+
+  <section class="sums" id="sums" aria-label="집계"></section>
+
+  <section class="card" aria-labelledby="day-title">
+    <h2 id="day-title">하루 기록</h2>
+    <form id="day-form">
+      <div class="row">
+        <label class="field">날짜 <input type="date" id="f-date" required></label>
+        <label class="check"><input type="checkbox" id="f-am"> 💊 영양제 아침</label>
+        <label class="check"><input type="checkbox" id="f-pm"> 💊 영양제 저녁</label>
+      </div>
+      <div class="row">
+        <label class="field">🏃 운동(분) <input type="number" id="f-ex" min="0" step="1" inputmode="numeric"></label>
+        <label class="field grow">운동 내용 <input type="text" id="f-ex-note" placeholder="산책, 헬스…"></label>
+      </div>
+      <div class="row">
+        <label class="field">💻 코드·AI 공부(분) <input type="number" id="f-st" min="0" step="1" inputmode="numeric"></label>
+        <label class="field grow">공부 내용 <input type="text" id="f-st-note" placeholder="파이썬 반복문…"></label>
+      </div>
+      <div class="row">
+        <label class="field">📮 지원 건수 <input type="number" id="f-apply" min="0" step="1" inputmode="numeric"></label>
+      </div>
+      <div class="goals" id="day-goals" aria-live="polite"></div>
+      <div class="row">
+        <button type="submit" class="primary">저장</button>
+        <button type="button" class="danger" id="day-clear">이 날 기록 지우기</button>
+      </div>
+      <p class="msg" id="day-msg" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="recent-title">
+    <h2 id="recent-title">최근 기록</h2>
+    <div class="table-wrap" id="recent"></div>
+  </section>
+
+  <section class="card" aria-labelledby="mission-title">
+    <h2 id="mission-title">미션</h2>
+    <form id="mission-form">
+      <div class="row">
+        <label class="field grow">미션 이름 <input type="text" id="m-name" placeholder="모의면접 3번" required></label>
+        <label class="field">종류
+          <select id="m-type"><option value="완료형">완료형</option><option value="횟수형">횟수형</option></select>
+        </label>
+        <label class="field hidden" id="m-target-wrap">목표 횟수 <input type="number" id="m-target" min="1" step="1" inputmode="numeric"></label>
+      </div>
+      <div class="row">
+        <label class="field">시작일 <input type="date" id="m-start" required></label>
+        <label class="field">마감일 <input type="date" id="m-end"></label>
+        <label class="field">💰 완료하면(원) <input type="number" id="m-money" min="0" step="100" inputmode="numeric" required></label>
+        <button type="submit" class="primary">미션 추가</button>
+      </div>
+      <p class="msg" id="mission-msg" aria-live="polite"></p>
+    </form>
+    <div id="missions-active"></div>
+    <details id="missions-done-wrap"><summary>끝난 미션</summary><div id="missions-done"></div></details>
+  </section>
+</main>
+
+<script src="logic.js"></script>
+<script>
+(function () {
+  var L = window.ChallengeLogic;
+  var KEY = 'challenge-board.v1';
+  var won = function (n) { return n.toLocaleString('ko-KR') + '원'; };
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ── 브라우저 저장 (실패해도 페이지는 동작) ──
+  var canSave = true;
+  function load() {
+    try { return L.parseState(localStorage.getItem(KEY)); }
+    catch (e) { canSave = false; return L.parseState(null); }
+  }
+  function save(s) {
+    try { localStorage.setItem(KEY, JSON.stringify(s)); }
+    catch (e) { canSave = false; }
+    $('storage-warn').classList.toggle('hidden', canSave);
+  }
+
+  // 오늘 날짜 (이 기기의 시간 기준)
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  var state = load();
+  $('storage-warn').classList.toggle('hidden', canSave);
+
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'class') e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) e.appendChild(c); });
+    return e;
+  }
+  function setMsg(id, text, err) { var m = $(id); m.textContent = text; m.classList.toggle('err', !!err); }
+
+  // ── 집계 ──
+  function renderSums() {
+    var s = L.summarize(state, today());
+    var box = $('sums');
+    box.replaceChildren();
+    [['이번 주', s.이번주], ['이번 달', s.이번달], ['전체 누적', s.전체]].forEach(function (p) {
+      var v = p[1];
+      box.appendChild(el('div', { class: 'card sum' }, [
+        el('h3', { text: p[0] }),
+        el('div', { class: 'money', text: won(v.돈) }),
+        el('dl', {}, [
+          el('dt', { text: '🏃 운동' }), el('dd', { text: v.운동_분 + '분' }),
+          el('dt', { text: '💻 공부' }), el('dd', { text: v.공부_분 + '분' }),
+          el('dt', { text: '📮 지원' }), el('dd', { text: v.지원_건수 + '건' }),
+        ]),
+      ]));
+    });
+  }
+
+  // ── 하루 기록 폼 ──
+  function readForm() {
+    return {
+      영양제_아침: $('f-am').checked ? true : '',
+      영양제_저녁: $('f-pm').checked ? true : '',
+      운동_분: $('f-ex').value, 운동_내용: $('f-ex-note').value,
+      공부_분: $('f-st').value, 공부_내용: $('f-st-note').value,
+      지원_건수: $('f-apply').value,
+    };
+  }
+  function fillForm(date) {
+    var r = state.days[date] || {};
+    $('f-date').value = date;
+    $('f-am').checked = r.영양제_아침 === true;
+    $('f-pm').checked = r.영양제_저녁 === true;
+    $('f-ex').value = r.운동_분 ?? '';
+    $('f-ex-note').value = r.운동_내용 ?? '';
+    $('f-st').value = r.공부_분 ?? '';
+    $('f-st-note').value = r.공부_내용 ?? '';
+    $('f-apply').value = r.지원_건수 ?? '';
+    renderGoals();
+  }
+  function renderGoals() {
+    var rec = readForm();
+    var j = L.judgeDay(rec);
+    var box = $('day-goals');
+    box.replaceChildren();
+    L.GOALS.forEach(function (g) {
+      var v = j[g.key];
+      var mark = v === true ? '✓ ' : v === false ? '✗ ' : '○ ';
+      box.appendChild(el('span', { class: 'badge' + (v === true ? ' ok' : v === false ? ' no' : ''), text: mark + g.label + ' +' + won(g.money) }));
+    });
+    box.appendChild(el('span', { class: 'badge', text: '이 날 ' + won(L.dayMoney(rec)) }));
+  }
+
+  $('day-form').addEventListener('input', function (e) {
+    if (e.target.id === 'f-date') return;
+    renderGoals();
+  });
+  $('f-date').addEventListener('change', function () {
+    if (L.isDate($('f-date').value)) { fillForm($('f-date').value); setMsg('day-msg', ''); }
+  });
+  $('day-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var date = $('f-date').value;
+    try {
+      state = L.setDay(state, date, readForm());
+      save(state);
+      setMsg('day-msg', date + ' 기록을 저장했어요. 이 날 ' + won(L.dayMoney(state.days[date] || {})));
+      renderAll();
+    } catch (err) { setMsg('day-msg', err.message, true); }
+  });
+  $('day-clear').addEventListener('click', function () {
+    var date = $('f-date').value;
+    if (!state.days[date]) { setMsg('day-msg', date + '에는 기록이 없어요.'); return; }
+    if (!confirm(date + ' 기록을 지울까요?')) return;
+    state = L.setDay(state, date, {});
+    save(state);
+    fillForm(date);
+    setMsg('day-msg', date + ' 기록을 지웠어요.');
+    renderAll();
+  });
+
+  // ── 최근 기록 표 (14일) ──
+  function renderRecent() {
+    var box = $('recent');
+    box.replaceChildren();
+    var dates = Object.keys(state.days).sort().reverse().slice(0, 14);
+    if (!dates.length) { box.appendChild(el('p', { class: 'empty', text: '아직 기록이 없어요. 위에서 첫 기록을 저장해 보세요.' })); return; }
+    var head = el('tr', {}, ['날짜', '영양제', '운동', '공부', '지원', '금액'].map(function (t, i) {
+      return el('th', { class: i >= 2 ? 'r' : '', text: t });
+    }));
+    var body = el('tbody');
+    dates.forEach(function (d) {
+      var r = state.days[d];
+      var sup = (r.영양제_아침 ? '아침' : '') + (r.영양제_아침 && r.영양제_저녁 ? '·' : '') + (r.영양제_저녁 ? '저녁' : '');
+      var tr = el('tr', { title: '눌러서 고치기' }, [
+        el('td', { class: 'num', text: d }),
+        el('td', { text: sup || '-' }),
+        el('td', { class: 'r num', text: r.운동_분 != null ? r.운동_분 + '분' : '-' }),
+        el('td', { class: 'r num', text: r.공부_분 != null ? r.공부_분 + '분' : '-' }),
+        el('td', { class: 'r num', text: r.지원_건수 != null ? r.지원_건수 + '건' : '-' }),
+        el('td', { class: 'r num', text: won(L.dayMoney(r)) }),
+      ]);
+      tr.addEventListener('click', function () { fillForm(d); $('day-title').scrollIntoView({ behavior: 'smooth' }); });
+      body.appendChild(tr);
+    });
+    box.appendChild(el('table', {}, [el('thead', {}, [head]), body]));
+  }
+
+  // ── 미션 ──
+  $('m-type').addEventListener('change', function () {
+    $('m-target-wrap').classList.toggle('hidden', $('m-type').value !== '횟수형');
+  });
+  $('mission-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    try {
+      state = L.addMission(state, {
+        이름: $('m-name').value, 종류: $('m-type').value, 시작일: $('m-start').value,
+        마감일: $('m-end').value, 목표_횟수: $('m-target').value, 금액: $('m-money').value,
+      });
+      save(state);
+      setMsg('mission-msg', '미션을 추가했어요.');
+      $('m-name').value = ''; $('m-target').value = ''; $('m-end').value = ''; $('m-money').value = '';
+      renderAll();
+    } catch (err) { setMsg('mission-msg', err.message, true); }
+  });
+
+  function act(fn, okText) {
+    try { state = fn(); save(state); setMsg('mission-msg', okText); renderAll(); }
+    catch (err) { setMsg('mission-msg', err.message, true); }
+  }
+
+  function dday(end) {
+    if (!end) return '마감 없음';
+    var diff = Math.round((new Date(end + 'T00:00:00Z') - new Date(today() + 'T00:00:00Z')) / 86400000);
+    return diff === 0 ? '오늘 마감' : diff > 0 ? '마감 D-' + diff : '마감 ' + (-diff) + '일 지남';
+  }
+
+  function missionRow(m) {
+    var parts = [el('span', { class: 'name', text: m.이름 })];
+    if (m.종류 === '횟수형') {
+      var pct = Math.min(100, Math.round(m.현재_횟수 / m.목표_횟수 * 100));
+      parts.push(el('span', { class: 'bar', 'aria-hidden': 'true' }, [(function () { var s = el('span'); s.style.width = pct + '%'; return s; })()]));
+      parts.push(el('span', { class: 'num', text: m.현재_횟수 + ' / ' + m.목표_횟수 }));
+    } else {
+      parts.push(el('span', { class: 'meta', text: '완료형' }));
+    }
+    parts.push(el('span', { class: 'meta num', text: '💰 ' + won(m.금액) }));
+    if (m.상태 === '진행 중') {
+      parts.push(el('span', { class: 'meta', text: dday(m.마감일) }));
+      var main = el('button', { class: 'primary', type: 'button', text: m.종류 === '횟수형' ? '+1' : '완료' });
+      main.addEventListener('click', function () {
+        act(function () {
+          return L.progressMission(state, m.id, m.종류 === '횟수형' ? { date: today(), n: 1 } : { date: today(), done: true });
+        }, m.이름 + ' 진행을 기록했어요.');
+      });
+      var quit = el('button', { class: 'danger', type: 'button', text: '포기' });
+      quit.addEventListener('click', function () {
+        if (!confirm('"' + m.이름 + '" 미션을 포기할까요? 돈은 쌓이지 않아요.')) return;
+        act(function () { return L.giveUpMission(state, m.id, today()); }, m.이름 + ' 미션을 포기했어요.');
+      });
+      parts.push(main, quit);
+    } else {
+      parts.push(el('span', { class: 'meta', text: (m.상태 === '완료' ? '🎉 완료 ' : '포기 ') + m.완료일 }));
+    }
+    return el('div', { class: 'mission' }, parts);
+  }
+
+  function renderMissions() {
+    var active = state.missions.filter(function (m) { return m.상태 === '진행 중'; })
+      .sort(function (a, b) { return (a.마감일 || '9999') < (b.마감일 || '9999') ? -1 : 1; });
+    var done = state.missions.filter(function (m) { return m.상태 !== '진행 중'; })
+      .sort(function (a, b) { return a.완료일 < b.완료일 ? 1 : -1; });
+    var a = $('missions-active'), d = $('missions-done');
+    a.replaceChildren(); d.replaceChildren();
+    if (!active.length) a.appendChild(el('p', { class: 'empty', text: '진행 중인 미션이 없어요.' }));
+    active.forEach(function (m) { a.appendChild(missionRow(m)); });
+    done.forEach(function (m) { d.appendChild(missionRow(m)); });
+    $('missions-done-wrap').classList.toggle('hidden', !done.length);
+  }
+
+  function renderAll() { renderSums(); renderRecent(); renderMissions(); }
+
+  fillForm(today());
+  $('m-start').value = today();
+  renderAll();
+})();
+</script>
+</body>
+</html>
